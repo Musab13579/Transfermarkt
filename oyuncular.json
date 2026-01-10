@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "name": "Messi",
+        "club": "Arsenal",
+        "value": "40",
+        "age": "37",
+        "country": "Arjantin",
+        "position": "Sağ Kanat",
+        "img": "messi.png",
+        "rumors": "Barcelona Messi için arsenale 20m Luk bı teklif yapti",
+        "history": "10/01/2026: Westham ➔ Arsenal\n",
+        "value_history": [
+            20.0,
+            40.0
+        ],
+        "date_history": [
+            "10/01",
+            "10/01"
+        ]
+    }
+]
