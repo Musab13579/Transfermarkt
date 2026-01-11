@@ -16,7 +16,7 @@
         <div class="bg-slate-900 p-6 rounded-[2.5rem] my-8 border border-blue-500 shadow-2xl">
             <form action="/guncelle/{{ player.id }}" method="POST" class="grid grid-cols-2 md:grid-cols-4 gap-3 text-black text-xs font-bold">
                 <input type="hidden" name="sifre" value="{{ sifre }}">
-                <input type="text" name="name" value="{{ player.name }}" class="p-2 rounded-lg outline-none" placeholder="Oyuncu Adı">
+                <input type="text" name="name" value="{{ player.name }}" class="p-2 rounded-lg outline-none">
                 
                 <select name="kulup_id" class="p-2 rounded-lg outline-none bg-white">
                     {% for k in kulupler %}
@@ -34,11 +34,11 @@
                     <option value="Sağ Kanat">Sağ Kanat</option><option value="Sol Kanat">Sol Kanat</option>
                     <option value="Santrafor">Santrafor</option>
                 </select>
-                <input type="text" name="value" value="{{ player.value }}" class="p-2 rounded-lg" placeholder="Değer (M €)">
-                <input type="text" name="age" value="{{ player.age }}" class="p-2 rounded-lg" placeholder="Yaş">
-                <input type="text" name="country" value="{{ player.country }}" class="p-2 rounded-lg" placeholder="Ülke">
+                <input type="text" name="value" value="{{ player.value }}" class="p-2 rounded-lg">
+                <input type="text" name="age" value="{{ player.age }}" class="p-2 rounded-lg">
+                <input type="text" name="country" value="{{ player.country }}" class="p-2 rounded-lg">
                 <input type="text" name="rumors" value="{{ player.rumors }}" placeholder="Söylenti" class="p-2 rounded-lg col-span-2 border-2 border-red-500">
-                <input type="text" name="img" value="{{ player.img }}" class="p-2 rounded-lg col-span-2 border-2 border-green-500" placeholder="Oyuncu Resim URL">
+                <input type="text" name="img" value="{{ player.img }}" class="p-2 rounded-lg col-span-2 border-2 border-green-500">
                 <button class="col-span-4 bg-blue-600 text-white p-3 rounded-xl font-black uppercase shadow-xl hover:bg-blue-500 transition">Bilgileri Güncelle</button>
             </form>
         </div>
@@ -59,7 +59,7 @@
                     <span class="text-slate-600">|</span>
                     <p class="text-blue-500 font-bold uppercase text-[10px] tracking-widest">{{ player.position }} | {{ player.age }} YAŞ</p>
                 </div>
-                
+
                 <div class="bg-blue-600 p-4 rounded-2xl text-2xl font-black italic shadow-lg underline decoration-blue-300">{{ player.value }} M €</div>
             </div>
 
