@@ -2,150 +2,84 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Futbol Market | Takım Filtreli</title>
+    <title>Futbol Sosyal</title>
     <style>
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .animate-marquee { display: inline-block; animation: marquee 30s linear infinite; }
+        .drawer { transform: translateX(100%); transition: 0.4s; }
+        .drawer.open { transform: translateX(0); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .team-card.active { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); transform: scale(1.05); }
     </style>
 </head>
-<body class="bg-[#0b0f1a] text-white font-sans">
+<body class="bg-[#0b0f1a] text-white">
 
-    <div class="bg-red-900 py-2 overflow-hidden border-b border-red-700 shadow-2xl">
-        <div class="whitespace-nowrap animate-marquee font-black uppercase text-[10px] tracking-widest text-red-100">
-            {% for p in players if p.rumors %} ⚡ {{ p.name }}: {{ p.rumors }} &nbsp;&nbsp;&nbsp;&nbsp; {% endfor %}
-            {% if not players %} TRANSFER BORSASI SAKİN... {% endif %}
+    <div id="sidePanel" class="drawer fixed top-0 right-0 h-full w-80 bg-[#161b2a] z-50 shadow-2xl p-6 overflow-y-auto no-scrollbar border-l border-slate-800">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="font-black text-blue-500 uppercase italic">MENÜ</h2>
+            <button onclick="togglePanel()" class="text-2xl text-slate-500">×</button>
         </div>
-    </div>
 
-    <div class="container mx-auto p-4 max-w-5xl">
-        <header class="flex justify-between items-center py-8">
-            <h1 class="text-2xl font-black italic text-blue-500 uppercase tracking-tighter cursor-pointer" onclick="location.reload()">FUTBOL MARKET</h1>
-            <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Takımını Seç, Oyuncuları Gör</div>
-        </header>
-
-        <div class="mb-10">
-            <h3 class="text-slate-500 font-black mb-4 uppercase text-[10px] tracking-widest">🛡️ KULÜPLER</h3>
-            <div class="flex gap-4 overflow-x-auto no-scrollbar py-4 px-2">
-                <div onclick="filterByTeam('all', this)" class="team-card active flex-shrink-0 cursor-pointer bg-[#161b2a] p-4 rounded-3xl border border-slate-800 transition-all w-24 text-center">
-                    <div class="w-12 h-12 mx-auto mb-2 flex items-center justify-center bg-blue-600 rounded-2xl font-black text-white italic">ALL</div>
-                    <p class="text-[9px] font-black uppercase">HEPSİ</p>
+        <h3 class="text-[10px] font-black text-slate-500 mb-4 uppercase">🛡️ KULÜPLER</h3>
+        <div class="space-y-3 mb-10">
+            {% for k in kulupler %}
+            <div class="bg-[#0b0f1a] p-4 rounded-2xl border border-slate-800">
+                <div class="flex items-center gap-3 mb-2">
+                    <img src="{{ k.logo }}" class="w-8 h-8 object-contain">
+                    <span class="font-bold text-sm">{{ k.isim }}</span>
                 </div>
-
-                {% for k in kulupler %}
-                <div onclick="filterByTeam('{{ k.id }}', this)" class="team-card flex-shrink-0 cursor-pointer bg-[#161b2a] p-4 rounded-3xl border border-slate-800 transition-all w-24 text-center">
-                    <img src="{{ k.logo }}" class="w-12 h-12 mx-auto mb-2 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166351.png'">
-                    <p class="text-[9px] font-black uppercase truncate">{{ k.isim }}</p>
+                <div class="flex justify-between text-[9px] text-slate-400 font-bold">
+                    <span>{{ k.oyuncular|length }} Oyuncu</span>
+                    <span class="text-blue-400">Toplam: {{ k.oyuncular|sum(attribute='value') }} M €</span>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="mb-12 space-y-4">
-            <div class="flex flex-col md:flex-row gap-3">
-                <input type="text" id="src" onkeyup="runFilters()" placeholder="Oyuncu ara..." class="flex-1 bg-[#161b2a] border border-slate-800 p-5 rounded-3xl outline-none focus:ring-2 focus:ring-blue-500 shadow-2xl text-white placeholder-slate-500">
-            </div>
-            
-            <div class="flex gap-2 overflow-x-auto no-scrollbar py-2">
-                <button onclick="setPosFilter('all', this)" class="pos-btn bg-blue-600 px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap">Tüm Mevkiler</button>
-                {% for pos in ['Kaleci', 'Stoper', 'Bek', 'Orta Saha', 'Kanat', 'Santrafor'] %}
-                <button onclick="setPosFilter('{{ pos }}', this)" class="pos-btn bg-slate-800 px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap">{{ pos }}</button>
-                {% endfor %}
-            </div>
-        </div>
-
-        {% if is_admin %}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            <div class="bg-green-900/10 p-6 rounded-[2.5rem] border-2 border-green-600 shadow-2xl">
-                <h3 class="text-green-500 font-black mb-4 uppercase text-[10px]">🛡️ KULÜP EKLE</h3>
-                <form action="/kulup_ekle" method="POST" class="grid gap-3">
-                    <input type="hidden" name="sifre" value="{{ sifre }}">
-                    <input type="text" name="isim" placeholder="Kulüp Adı" class="p-3 rounded-xl text-black font-bold" required>
-                    <input type="text" name="logo" placeholder="Logo URL" class="p-3 rounded-xl text-black font-bold">
-                    <button type="submit" class="bg-green-600 text-white font-black py-3 rounded-xl uppercase">KAYDET</button>
-                </form>
-            </div>
-            <div class="bg-blue-900/10 p-6 rounded-[2.5rem] border-2 border-blue-600 shadow-2xl">
-                <h3 class="text-blue-500 font-black mb-4 uppercase text-[10px]">👤 OYUNCU EKLE</h3>
-                <form action="/ekle" method="POST" class="grid grid-cols-2 gap-3 text-black text-[11px] font-bold">
-                    <input type="hidden" name="sifre" value="{{ sifre }}">
-                    <input type="text" name="name" placeholder="İsim" class="p-3 rounded-xl outline-none" required>
-                    <select name="kulup_id" class="p-3 rounded-xl outline-none bg-white" required>
-                        <option value="">Kulüp Seç</option>
-                        {% for k in kulupler %}<option value="{{ k.id }}">{{ k.isim }}</option>{% endfor %}
-                    </select>
-                    <select name="position" class="p-3 rounded-xl outline-none bg-white">
-                        <option value="Kaleci">Kaleci</option><option value="Stoper">Stoper</option>
-                        <option value="Sağ Bek">Sağ Bek</option><option value="Sol Bek">Sol Bek</option>
-                        <option value="Merkez Orta Saha">Merkez Orta Saha</option><option value="Santrafor">Santrafor</option>
-                    </select>
-                    <input type="text" name="value" placeholder="M €" class="p-3 rounded-xl">
-                    <input type="text" name="img" placeholder="Resim URL" class="p-3 rounded-xl col-span-2">
-                    <button type="submit" class="col-span-2 bg-blue-600 text-white font-black py-3 rounded-xl uppercase">EKLE</button>
-                </form>
-            </div>
-        </div>
-        {% endif %}
-
-        <div id="grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {% for p in players %}
-            <div class="card bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800 transition-all shadow-xl group" 
-                 data-team="{{ p.kulup_id }}"
-                 data-info="{{ p.name|lower }}"
-                 data-pos="{{ p.position }}">
-                <a href="/oyuncu/{{ p.id }}?sifre={{ sifre or '' }}">
-                    <div class="h-40 w-full mb-4 flex justify-center items-center bg-[#0b0f1a] rounded-[2rem] relative overflow-hidden">
-                        <img src="{{ p.img }}" class="h-full object-contain group-hover:scale-110 transition duration-500" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166351.png'">
-                        <div class="absolute top-3 right-3 bg-blue-600 text-[8px] px-2 py-1 rounded-full font-black uppercase">{{ p.position }}</div>
-                    </div>
-                    <h3 class="text-sm font-black text-center uppercase truncate text-white">{{ p.name }}</h3>
-                    <div class="bg-blue-600/10 border border-blue-500/20 p-3 mt-3 rounded-2xl text-center text-blue-400 font-black text-xs italic">{{ p.value }} M €</div>
-                </a>
-                {% if is_admin %}
-                <div class="mt-4 text-center"><a href="/sil/{{ p.id }}?sifre={{ sifre }}" class="text-red-500 text-[9px] font-black uppercase">SİL</a></div>
-                {% endif %}
             </div>
             {% endfor %}
         </div>
     </div>
 
+    <div class="container mx-auto p-4 max-w-5xl">
+        <header class="flex justify-between items-center py-6">
+            <h1 class="text-2xl font-black italic text-blue-500">FUTBOL SOSYAL</h1>
+            <button onclick="togglePanel()" class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-2xl">⋮</button>
+        </header>
+
+        <div class="mb-10">
+            <h3 class="text-red-500 font-black mb-4 uppercase text-[10px]">🗞️ SON HABERLER</h3>
+            <div class="flex gap-4 overflow-x-auto no-scrollbar pb-4">
+                {% for h in haberler %}
+                <div class="bg-[#161b2a] min-w-[300px] p-6 rounded-3xl border border-slate-800 shadow-xl">
+                    <h4 class="font-black text-white mb-2 uppercase italic leading-tight">{{ h.baslik }}</h4>
+                    <p class="text-xs text-slate-400 line-clamp-2 mb-4">{{ h.icerik }}</p>
+                    <span class="text-[9px] text-slate-600 font-bold uppercase">{{ h.tarih.strftime('%d.%m.%Y') }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if is_admin %}
+        <div class="bg-red-900/10 p-6 rounded-[2.5rem] border-2 border-red-600 mb-8 shadow-2xl">
+            <h3 class="text-red-500 font-black mb-4 uppercase text-[10px]">Haber Yaz</h3>
+            <form action="/haber_ekle" method="POST" class="grid gap-3">
+                <input type="hidden" name="sifre" value="{{ sifre }}">
+                <input type="text" name="baslik" placeholder="Haber Başlığı" class="p-3 rounded-xl text-black font-bold" required>
+                <textarea name="icerik" placeholder="İçerik..." class="p-3 rounded-xl text-black font-bold" rows="3"></textarea>
+                <button type="submit" class="bg-red-600 text-white font-black py-3 rounded-xl">YAYINLA</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {% for p in players %}
+            <a href="/oyuncu/{{ p.id }}?sifre={{ sifre }}" class="bg-[#161b2a] p-4 rounded-[2rem] border border-slate-800 block hover:scale-105 transition">
+                <img src="{{ p.img }}" class="h-32 w-full object-contain mb-3">
+                <h3 class="text-xs font-black text-center truncate uppercase">{{ p.name }}</h3>
+                <div class="text-center text-blue-400 font-black text-[10px] mt-2 italic">{{ p.value }} M €</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
     <script>
-        let selectedTeam = 'all';
-        let selectedPos = 'all';
-
-        function filterByTeam(teamId, el) {
-            selectedTeam = teamId;
-            document.querySelectorAll('.team-card').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            runFilters();
-        }
-
-        function setPosFilter(pos, el) {
-            selectedPos = pos;
-            document.querySelectorAll('.pos-btn').forEach(b => b.classList.replace('bg-blue-600', 'bg-slate-800'));
-            el.classList.replace('bg-slate-800', 'bg-blue-600');
-            runFilters();
-        }
-
-        function runFilters() {
-            let search = document.getElementById('src').value.toLowerCase();
-            let cards = document.querySelectorAll('.card');
-
-            cards.forEach(card => {
-                let teamMatch = (selectedTeam === 'all' || card.dataset.team === selectedTeam);
-                let searchMatch = card.dataset.info.includes(search);
-                let posMatch = (selectedPos === 'all' || card.dataset.pos.includes(selectedPos));
-
-                if (teamMatch && searchMatch && posMatch) {
-                    card.style.display = "block";
-                } else {
-                    card.style.display = "none";
-                }
-            });
-        }
+        function togglePanel() { document.getElementById('sidePanel').classList.toggle('open'); }
     </script>
 </body>
 </html>
