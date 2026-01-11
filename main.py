@@ -4,11 +4,13 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
+
+# Veritabanı bağlantısı
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# MODELLER
+# --- MODELLER ---
 class Kulup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     isim = db.Column(db.String(100), nullable=False)
@@ -19,7 +21,7 @@ class Oyuncu(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     position = db.Column(db.String(50))
-    value = db.Column(db.Float, default=0)
+    value = db.Column(db.Float, default=0.0)
     img = db.Column(db.String(500))
     rumors = db.Column(db.String(500))
     kulup_id = db.Column(db.Integer, db.ForeignKey('kulup.id'), nullable=False)
@@ -37,6 +39,7 @@ class Yorum(db.Model):
     metin = db.Column(db.Text)
     oyuncu_id = db.Column(db.Integer, db.ForeignKey('oyuncu.id'))
 
+# --- ROTARLAR ---
 @app.route('/')
 def index():
     sifre = request.args.get('sifre')
@@ -65,10 +68,17 @@ def haber_ekle():
 @app.route('/ekle', methods=['POST'])
 def ekle():
     if request.form.get('sifre') == "futbol123":
+        try:
+            val = float(request.form.get('value', 0).replace(',', '.'))
+        except:
+            val = 0.0
         y_o = Oyuncu(
-            name=request.form['name'], position=request.form['position'],
-            value=float(request.form['value'] or 0), img=request.form['img'],
-            rumors=request.form['rumors'], kulup_id=request.form['kulup_id']
+            name=request.form['name'], 
+            position=request.form['position'],
+            value=val, 
+            img=request.form['img'],
+            rumors=request.form.get('rumors', ''),
+            kulup_id=int(request.form['kulup_id'])
         )
         db.session.add(y_o)
         db.session.commit()
