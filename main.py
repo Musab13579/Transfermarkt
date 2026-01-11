@@ -5,7 +5,7 @@ import os
 from sqlalchemy.dialects import postgresql
 # Eğer hata devam ederse, koda şunu ekle:
 import sqlalchemy
-
+import sqlalchemy.dialects.postgresql
 
 app = Flask(__name__)
 
