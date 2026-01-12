@@ -52,13 +52,19 @@ with app.app_context():
 @app.route('/tablo-kur')
 def tablo_kur():
     try:
-        # Önce her şeyi siliyoruz (Tablo şemasını sıfırlamak için)
-        db.drop_all() 
-        # Şimdi en güncel sütunlarla (club, rumors vb.) tekrar kuruyoruz
+        # ÖNEMLİ: Tabloları birbirine bağlayan kilitleri zorla açıyoruz
+        db.session.execute(db.text('DROP TABLE IF EXISTS oyuncu CASCADE;'))
+        db.session.execute(db.text('DROP TABLE IF EXISTS haber CASCADE;'))
+        db.session.execute(db.text('DROP TABLE IF EXISTS kulup CASCADE;'))
+        db.session.commit()
+        
+        # Şimdi tertemiz ve yeni sütunlarla (club dahil) kuruyoruz
         db.create_all()
-        return "Veritabanı SIFIRLANDI ve mermi gibi kuruldu! Artık oyuncu ekleyebilirsin."
+        return "Veritabanı zorla SIFIRLANDI ve club sütunu eklendi! Ana sayfaya dönebilirsin."
     except Exception as e:
-        return f"Sıfırlama hatası: {str(e)}"
+        db.session.rollback()
+        return f"Hata: {str(e)}"
+        
         
 
 @app.route('/')
