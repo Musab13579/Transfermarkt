@@ -94,8 +94,11 @@ def ekle():
                 name=request.form.get('name'), club=request.form.get('club'),
                 value=v, age=request.form.get('age'), country=request.form.get('country'),
                 position=request.form.get('position'), img=request.form.get('img'),
-                rumors=request.form.get('rumors'), value_history=[v], date_history=[bugun]
-            )
+                rumors=request.form.get('rumors'), history=request.form.get('history'), # Bu satırı ekle
+    value_history=[v], 
+    date_history=[bugun]
+)
+            
             db.session.add(yeni)
         elif tip == 'club':
             db.session.add(Kulup(ad=request.form.get('ad'), logo=request.form.get('logo')))
