@@ -173,6 +173,53 @@ def oyuncu_duzenle(id):
         db.session.commit()
     return redirect(url_for('oyuncu_detay', player_id=id, sifre=request.form.get('sifre')))
     
+# --- HABER DÜZENLEME ---
+@app.route('/haber-duzenle/<int:id>', methods=['POST'])
+def haber_duzenle(id):
+    if request.form.get('sifre') == "futbol123":
+        h = Haber.query.get_or_404(id)
+        h.baslik = request.form.get('baslik')
+        h.icerik = request.form.get('icerik')
+        db.session.commit()
+    return redirect(url_for('home', sifre=request.form.get('sifre')))
+
+# --- OYUNCU SİLME ---
+@app.route('/oyuncu-sil/<int:id>')
+def oyuncu_sil(id):
+    if request.args.get('sifre') == "futbol123":
+        p = Oyuncu.query.get(id)
+        if p:
+            db.session.delete(p)
+            db.session.commit()
+    return redirect(url_for('home', sifre=request.args.get('sifre')))
+
+# --- OYUNCU GÜNCELLEME ---
+@app.route('/oyuncu-guncelle/<int:id>', methods=['POST'])
+def oyuncu_guncelle(id):
+    if request.form.get('sifre') == "futbol123":
+        p = Oyuncu.query.get_or_404(id)
+        p.name = request.form.get('name')
+        p.club = request.form.get('club')
+        p.position = request.form.get('position')
+        p.age = request.form.get('age')
+        p.country = request.form.get('country')
+        p.history = request.form.get('history')
+        p.rumors = request.form.get('rumors')
+        
+        # Değer değiştiyse grafiği güncelle
+        v = float(request.form.get('value', '0').replace(',', '.'))
+        if v != p.value:
+            p.value = v
+            v_hist = list(p.value_history)
+            d_hist = list(p.date_history)
+            v_hist.append(v)
+            d_hist.append(datetime.now().strftime("%d/%m"))
+            p.value_history = v_hist
+            p.date_history = d_hist
+            
+        db.session.commit()
+    return redirect(url_for('oyuncu_detay', player_id=id, sifre=request.form.get('sifre')))
+            
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
