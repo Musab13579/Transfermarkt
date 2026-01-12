@@ -71,12 +71,23 @@
         <div class="mb-12">
             <h2 class="text-[9px] font-black text-red-500 mb-4 tracking-widest uppercase italic">🔥 SON DAKİKA</h2>
             <div class="space-y-3">
-                {% for n in news %}
-                <div class="bg-[#161b2a] p-4 rounded-[1.5rem] border-l-4 border-red-600 shadow-lg">
-                    <h3 class="text-xs font-black uppercase">{{ n.baslik }}</h3>
-                    <p class="text-[10px] text-slate-400 mt-1">{{ n.icerik }}</p>
-                </div>
-                {% endfor %}
+           {% for n in news %}
+        <div class="bg-[#161b2a] p-4 rounded-[1.5rem] border-l-4 border-red-600 shadow-lg mb-4">
+            <h3 class="text-xs font-black uppercase">{{ n.baslik }}</h3>
+            <p class="text-[10px] text-slate-400 mt-1">{{ n.icerik }}</p>
+            
+            {% if is_admin %}
+            <div class="text-right mt-2">
+                <a href="/haber-sil/{{ n.id }}?sifre={{ sifre }}" 
+                   class="text-red-500 text-[10px] font-bold hover:underline" 
+                   onclick="return confirm('Bu haberi sileyim mi babuş?')">
+                   SİL 🗑️
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+                
             </div>
         </div>
 
