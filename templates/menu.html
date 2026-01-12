@@ -2,42 +2,15 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Yönetim Paneli</title>
 </head>
-<body class="bg-[#0b0f1a] text-white p-6 font-sans">
-    <div class="max-w-2xl mx-auto pb-20">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-xl font-black italic text-blue-500 uppercase">YÖNETİM MERKEZİ</h1>
-            <a href="/?sifre={{ sifre }}" class="text-slate-500 text-xs font-bold uppercase">← Siteye Dön</a>
-        </header>
-
-        {% if sifre == 'futbol123' %}
-        <div class="space-y-8">
-            <div class="bg-[#161b2a] p-6 rounded-[2.5rem] border border-red-900/30">
-                <h2 class="text-red-500 font-black mb-4 uppercase text-xs">🔥 HABER YAYINLA</h2>
-                <form action="/haber_ekle" method="POST" class="space-y-3">
-                    <input type="hidden" name="sifre" value="{{ sifre }}">
-                    <input type="text" name="baslik" placeholder="Başlık" class="w-full p-4 bg-slate-900 rounded-2xl outline-none border border-slate-800 text-sm">
-                    <textarea name="icerik" placeholder="Haber detayı..." class="w-full p-4 bg-slate-900 rounded-2xl outline-none border border-slate-800 text-sm h-24"></textarea>
-                    <button class="w-full bg-red-600 p-4 rounded-2xl font-black uppercase text-xs">Haberi Paylaş</button>
-                </form>
-            </div>
-
-            <div class="bg-[#161b2a] p-6 rounded-[2.5rem] border border-blue-900/30">
-                <h2 class="text-blue-500 font-black mb-4 uppercase text-xs">🛡️ KULÜP KAYDET</h2>
-                <form action="/kulup_ekle" method="POST" class="space-y-3">
-                    <input type="hidden" name="sifre" value="{{ sifre }}">
-                    <input type="text" name="ad" placeholder="Kulüp Adı" class="w-full p-4 bg-slate-900 rounded-2xl outline-none border border-slate-800 text-sm">
-                    <input type="text" name="logo" placeholder="Logo URL" class="w-full p-4 bg-slate-900 rounded-2xl outline-none border border-slate-800 text-sm">
-                    <button class="w-full bg-blue-600 p-4 rounded-2xl font-black uppercase text-xs">Kulübü Ekle</button>
-                </form>
-            </div>
-        </div>
-        {% else %}
-            <p class="text-center text-red-500 font-bold uppercase">Yetkisiz Erişim!</p>
-        {% endif %}
+<body class="bg-[#0b0f1a] text-white p-10">
+    <div class="max-w-md mx-auto space-y-6">
+        <h1 class="text-center font-black text-blue-500 text-2xl mb-10">MENÜ</h1>
+        <a href="/?sifre={{ sifre }}" class="block bg-slate-800 p-6 rounded-3xl font-bold text-center">🏠 ANA SAYFA</a>
+        <a href="#" class="block bg-red-900/20 border border-red-900 p-6 rounded-3xl font-bold text-center text-red-500">🔥 HABERLER (Yakında)</a>
+        <a href="#" class="block bg-blue-900/20 border border-blue-900 p-6 rounded-3xl font-bold text-center text-blue-500">🛡️ KULÜPLER (Yakında)</a>
+        <a href="/?sifre={{ sifre }}" class="block text-center text-slate-500 text-sm mt-10">← Geri Dön</a>
     </div>
 </body>
 </html>
