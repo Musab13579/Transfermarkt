@@ -54,15 +54,19 @@
         </div>
 
         <div class="mb-10">
-            <h2 class="text-[9px] font-black text-slate-500 mb-4 tracking-widest uppercase italic">🛡️ KULÜPLER</h2>
-            <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                {% for k in clubs %}
-                <a href="/kulup/{{ k.ad }}?sifre={{ sifre }}" class="flex-none w-16 h-16 bg-[#161b2a] rounded-2xl border border-slate-800 p-3 hover:border-blue-500 transition">
-                    <img src="{{ k.logo }}" class="w-full h-full object-contain">
-                </a>
-                {% endfor %}
+    <h2 class="text-[9px] font-black text-slate-500 mb-4 tracking-widest uppercase italic">🛡️ KULÜPLER</h2>
+    <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+        {% for k in clubs %}
+        <a href="/kulup/{{ k.ad }}?sifre={{ sifre }}" class="flex-none text-center">
+            <div class="w-16 h-16 bg-[#161b2a] rounded-2xl border border-slate-800 p-3 hover:border-blue-500 transition mb-2">
+                <img src="{{ k.logo }}" class="w-full h-full object-contain">
             </div>
+            <p class="text-[8px] font-black uppercase text-slate-400 truncate w-16">{{ k.ad }}</p>
+        </a>
+        {% endfor %}
+    </div>
         </div>
+        
 
         <div class="mb-12">
             <h2 class="text-[9px] font-black text-red-500 mb-4 tracking-widest uppercase italic">🔥 SON DAKİKA</h2>
