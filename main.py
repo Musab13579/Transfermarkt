@@ -1,49 +1,45 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import Integer, String, Float, Text, DateTime, ForeignKey, Numeric
 from datetime import datetime
 import os
-
-# Yeni nesil SQLAlchemy 2.0 başlatma (3.13 uyumlu)
-class Base(DeclarativeBase):
-    pass
+from sqlalchemy.dialects.postgresql import NUMERIC
 
 app = Flask(__name__)
 
-# Veritabanı Ayarı
+# Veritabanı Bağlantısı
 uri = os.getenv("DATABASE_URL")
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(model_class=Base)
-db.init_app(app)
+db = SQLAlchemy(app)
+
+# PostgreSQL Numeric Hatası Tamiri (Cuk oturan kısım burası)
+def fix_numeric(value, dialect):
+    return float(value) if value is not None else None
+NUMERIC.result_processor = fix_numeric
 
 # MODELLER
 class Kulup(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    isim: Mapped[str] = mapped_column(String(100))
-    logo: Mapped[str] = mapped_column(String(500), nullable=True)
-    oyuncular = relationship("Oyuncu", back_populates="kulup")
+    id = db.Column(db.Integer, primary_key=True)
+    isim = db.Column(db.String(100), nullable=False)
+    logo = db.Column(db.String(500))
+    oyuncular = db.relationship('Oyuncu', backref='kulup', lazy=True)
 
 class Oyuncu(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(100))
-    position: Mapped[str] = mapped_column(String(50))
-    # Burası kritik: Numeric hatasını engellemek için Float kullanıyoruz
-    value: Mapped[float] = mapped_column(Float, default=0.0)
-    img: Mapped[str] = mapped_column(String(500), nullable=True)
-    rumors: Mapped[str] = mapped_column(String(500), nullable=True)
-    kulup_id: Mapped[int] = mapped_column(ForeignKey("kulup.id"))
-    kulup = relationship("Kulup", back_populates="oyuncular")
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    position = db.Column(db.String(50))
+    value = db.Column(db.Float, default=0.0)
+    img = db.Column(db.String(500))
+    kulup_id = db.Column(db.Integer, db.ForeignKey('kulup.id'), nullable=False)
 
 class Haber(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    baslik: Mapped[str] = mapped_column(String(200))
-    icerik: Mapped[str] = mapped_column(Text)
-    tarih: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True)
+    baslik = db.Column(db.String(200))
+    icerik = db.Column(db.Text)
+    tarih = db.Column(db.DateTime, default=datetime.utcnow)
 
 # ROTALAR
 @app.route('/')
@@ -59,28 +55,11 @@ def menu():
 
 @app.route('/oyuncu/<int:id>')
 def detay(id):
-    sifre = request.args.get('sifre')
     p = Oyuncu.query.get_or_404(id)
-    # Sıralamalar
     lig_sira = Oyuncu.query.filter(Oyuncu.value > p.value).count() + 1
     takim_sira = Oyuncu.query.filter(Oyuncu.kulup_id == p.kulup_id, Oyuncu.value > p.value).count() + 1
     mevki_sira = Oyuncu.query.filter(Oyuncu.position == p.position, Oyuncu.value > p.value).count() + 1
-    return render_template('detay.html', p=p, lig_sira=lig_sira, takim_sira=takim_sira, mevki_sira=mevki_sira, sifre=sifre)
-
-@app.route('/haberler')
-def haberler():
-    h_list = Haber.query.order_by(Haber.tarih.desc()).all()
-    return render_template('haberler.html', haberler=h_list, sifre=request.args.get('sifre'))
-
-@app.route('/kulupler')
-def kulupler():
-    k_list = Kulup.query.all()
-    return render_template('kulupler.html', kulupler=k_list, sifre=request.args.get('sifre'))
-
-@app.route('/en-iyiler')
-def en_iyiler():
-    best = Oyuncu.query.order_by(Oyuncu.position, Oyuncu.value.desc()).all()
-    return render_template('en_iyiler.html', players=best, sifre=request.args.get('sifre'))
+    return render_template('detay.html', p=p, lig_sira=lig_sira, takim_sira=takim_sira, mevki_sira=mevki_sira, sifre=request.args.get('sifre'))
 
 @app.route('/ekle_hersey', methods=['POST'])
 def ekle_hersey():
@@ -93,8 +72,6 @@ def ekle_hersey():
         n = Oyuncu(name=request.form['name'], position=request.form['position'], 
                    value=float(request.form['value']), img=request.form['img'],
                    kulup_id=int(request.form['kulup_id']))
-    elif tip == "haber":
-        n = Haber(baslik=request.form['name'], icerik=request.form['icerik'])
     db.session.add(n)
     db.session.commit()
     return redirect(url_for('index', sifre=sifre))
@@ -102,4 +79,5 @@ def ekle_hersey():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
