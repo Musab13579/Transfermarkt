@@ -1,9 +1,0 @@
-<body style="font-family: sans-serif; background: #f4f4f4; padding: 20px;">
-    <h2>Mevkilere Göre En İyiler</h2>
-    {% for p in players %}
-    <div style="background: white; padding: 10px; margin-bottom: 5px; border-radius: 5px;">
-        <strong>{{ p.position }}</strong>: {{ p.name }} - €{{ p.value }}M
-    </div>
-    {% endfor %}
-    <a href="{{ url_for('index', sifre=sifre) }}">Geri Dön</a>
-</body>
