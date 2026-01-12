@@ -6,6 +6,16 @@ from sqlalchemy.dialects import postgresql
 # Eğer hata devam ederse, koda şunu ekle:
 import sqlalchemy
 import sqlalchemy.dialects.postgresql
+# PostgreSQL sayısal tür hatasını düzelten özel ayar
+import decimal
+from sqlalchemy.dialects.postgresql import NUMERIC
+from sqlalchemy import exc
+
+def fix_numeric_type(value, dialect):
+    return decimal.Decimal(value) if value is not None else None
+
+# Bu satır SQLAlchemy'ye 'Bilinmeyen tür' hatası yerine ne yapacağını öğretir
+NUMERIC.result_processor = fix_numeric_type
 
 app = Flask(__name__)
 
