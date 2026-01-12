@@ -48,13 +48,18 @@ with app.app_context():
         print(f"Tablo oluşturma hatası: {e}")
 
 # --- ROTALAR ---
+
 @app.route('/tablo-kur')
 def tablo_kur():
     try:
+        # Önce her şeyi siliyoruz (Tablo şemasını sıfırlamak için)
+        db.drop_all() 
+        # Şimdi en güncel sütunlarla (club, rumors vb.) tekrar kuruyoruz
         db.create_all()
-        return "Veritabanı tabloları mermi gibi kuruldu! Ana sayfaya dönebilirsin."
+        return "Veritabanı SIFIRLANDI ve mermi gibi kuruldu! Artık oyuncu ekleyebilirsin."
     except Exception as e:
-        return f"Hata: {str(e)}"
+        return f"Sıfırlama hatası: {str(e)}"
+        
 
 @app.route('/')
 def home():
