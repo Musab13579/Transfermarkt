@@ -38,9 +38,15 @@ class Kulup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ad = db.Column(db.String(100))
     logo = db.Column(db.String(500))
-
+    
+    # Bu kısmı main.py içindeki db.create_all() olan yerle değiştir:
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        print("Veritabanı tabloları başarıyla oluşturuldu.")
+    except Exception as e:
+        print(f"Tablo oluşturma hatası: {e}")
+        
 
 @app.route('/')
 def home():
