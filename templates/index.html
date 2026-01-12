@@ -3,83 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Futbol Sosyal</title>
+    <title>Transfermarkt - Ana Sayfa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .drawer { transform: translateX(100%); transition: 0.4s; }
-        .drawer.open { transform: translateX(0); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
+        .header { background: #1a3151; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; }
+        .menu-btn { color: white; font-size: 24px; text-decoration: none; cursor: pointer; }
+        .player-list { margin-top: 20px; }
+        .player-card { background: white; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; border-left: 5px solid #1a3151; text-decoration: none; color: black; }
+        .player-card img { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; }
+        .player-info { flex-grow: 1; }
+        .player-val { font-weight: bold; color: #1a3151; }
+        .admin-panel { background: #e3e3e3; padding: 15px; border-radius: 8px; margin-top: 20px; }
     </style>
 </head>
-<body class="bg-[#0b0f1a] text-white">
+<body>
 
-    <div id="sidePanel" class="drawer fixed top-0 right-0 h-full w-80 bg-[#161b2a] z-50 shadow-2xl p-6 overflow-y-auto no-scrollbar border-l border-slate-800">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="font-black text-blue-500 uppercase italic">MENÜ</h2>
-            <button onclick="togglePanel()" class="text-2xl text-slate-500">×</button>
+<div class="header">
+    <span>TRANSFERMARKT</span>
+    <a href="{{ url_for('menu', sifre=sifre) }}" class="menu-btn"><i class="fas fa-ellipsis-v"></i></a>
+</div>
+
+<div class="player-list">
+    <h3>En Değerli Oyuncular</h3>
+    {% for p in players %}
+    <a href="{{ url_for('detay', id=p.id, sifre=sifre) }}" class="player-card">
+        <img src="{{ p.img }}" alt="">
+        <div class="player-info">
+            <div><strong>{{ p.name }}</strong></div>
+            <div style="font-size: 12px; color: gray;">{{ p.position }} - {{ p.kulup.isim }}</div>
         </div>
+        <div class="player-val">€{{ p.value }}M</div>
+    </a>
+    {% endfor %}
+</div>
 
-        <h3 class="text-[10px] font-black text-slate-500 mb-4 uppercase">🛡️ KULÜPLER</h3>
-        <div class="space-y-3 mb-10">
-            {% for k in kulupler %}
-            <div class="bg-[#0b0f1a] p-4 rounded-2xl border border-slate-800">
-                <div class="flex items-center gap-3 mb-2">
-                    <img src="{{ k.logo }}" class="w-8 h-8 object-contain">
-                    <span class="font-bold text-sm">{{ k.isim }}</span>
-                </div>
-                <div class="flex justify-between text-[9px] text-slate-400 font-bold">
-                    <span>{{ k.oyuncular|length }} Oyuncu</span>
-                    <span class="text-blue-400">Toplam: {{ k.oyuncular|sum(attribute='value') }} M €</span>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
+{% if is_admin %}
+<div class="admin-panel">
+    <h3>Admin - Veri Ekle</h3>
+    <form action="{{ url_for('ekle_hersey') }}" method="POST">
+        <input type="hidden" name="sifre" value="{{ sifre }}">
+        <select name="tip">
+            <option value="kulup">Kulüp Ekle</option>
+            <option value="oyuncu">Oyuncu Ekle</option>
+            <option value="haber">Haber Ekle</option>
+        </select><br><br>
+        <input type="text" name="name" placeholder="Oyuncu Adı / Kulüp Adı / Haber Başlığı"><br>
+        <input type="text" name="img" placeholder="Resim/Logo URL"><br>
+        <input type="text" name="value" placeholder="Değer (Sadece rakam örn: 50)"><br>
+        <input type="text" name="position" placeholder="Mevki"><br>
+        <input type="text" name="kulup_id" placeholder="Kulüp ID (Oyuncu için)"><br>
+        <textarea name="icerik" placeholder="Haber İçeriği"></textarea><br>
+        <button type="submit">Gönder</button>
+    </form>
+</div>
+{% endif %}
 
-    <div class="container mx-auto p-4 max-w-5xl">
-        <header class="flex justify-between items-center py-6">
-            <h1 class="text-2xl font-black italic text-blue-500">FUTBOL SOSYAL</h1>
-            <button onclick="togglePanel()" class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-2xl">⋮</button>
-        </header>
-
-        <div class="mb-10">
-            <h3 class="text-red-500 font-black mb-4 uppercase text-[10px]">🗞️ SON HABERLER</h3>
-            <div class="flex gap-4 overflow-x-auto no-scrollbar pb-4">
-                {% for h in haberler %}
-                <div class="bg-[#161b2a] min-w-[300px] p-6 rounded-3xl border border-slate-800 shadow-xl">
-                    <h4 class="font-black text-white mb-2 uppercase italic leading-tight">{{ h.baslik }}</h4>
-                    <p class="text-xs text-slate-400 line-clamp-2 mb-4">{{ h.icerik }}</p>
-                    <span class="text-[9px] text-slate-600 font-bold uppercase">{{ h.tarih.strftime('%d.%m.%Y') }}</span>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        {% if is_admin %}
-        <div class="bg-red-900/10 p-6 rounded-[2.5rem] border-2 border-red-600 mb-8 shadow-2xl">
-            <h3 class="text-red-500 font-black mb-4 uppercase text-[10px]">Haber Yaz</h3>
-            <form action="/haber_ekle" method="POST" class="grid gap-3">
-                <input type="hidden" name="sifre" value="{{ sifre }}">
-                <input type="text" name="baslik" placeholder="Haber Başlığı" class="p-3 rounded-xl text-black font-bold" required>
-                <textarea name="icerik" placeholder="İçerik..." class="p-3 rounded-xl text-black font-bold" rows="3"></textarea>
-                <button type="submit" class="bg-red-600 text-white font-black py-3 rounded-xl">YAYINLA</button>
-            </form>
-        </div>
-        {% endif %}
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {% for p in players %}
-            <a href="/oyuncu/{{ p.id }}?sifre={{ sifre }}" class="bg-[#161b2a] p-4 rounded-[2rem] border border-slate-800 block hover:scale-105 transition">
-                <img src="{{ p.img }}" class="h-32 w-full object-contain mb-3">
-                <h3 class="text-xs font-black text-center truncate uppercase">{{ p.name }}</h3>
-                <div class="text-center text-blue-400 font-black text-[10px] mt-2 italic">{{ p.value }} M €</div>
-            </a>
-            {% endfor %}
-        </div>
-    </div>
-
-    <script>
-        function togglePanel() { document.getElementById('sidePanel').classList.toggle('open'); }
-    </script>
 </body>
 </html>
