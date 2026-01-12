@@ -108,11 +108,12 @@ def sil(player_id):
     return redirect(url_for('home', sifre=gelen_sifre))
 
 if __name__ == '__main__':
-    # Veritabanı tablolarını uygulama bağlamında oluştur
     with app.app_context():
+        # Bu satır veritabanında tablo yoksa oluşturur
         db.create_all()
-        print("Veritabanı tabloları kontrol edildi/oluşturuldu.")
+        print(">>> Veritabanı tabloları hazır!")
     
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+    
     
