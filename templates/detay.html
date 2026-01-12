@@ -1,44 +1,104 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ p.name }} - Detay</title>
-    <style>
-        body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
-        .card { background: white; max-width: 500px; margin: 20px auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .card-header { background: #1a3151; color: white; padding: 20px; text-align: center; }
-        .card-header img { width: 120px; height: 120px; border-radius: 50%; border: 4px solid white; }
-        .stats { padding: 20px; }
-        .stat-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .rank-box { background: #eef2f7; padding: 15px; margin: 10px; border-radius: 8px; }
-        .rank-item { font-size: 14px; margin-bottom: 5px; color: #333; }
-        .rank-val { float: right; font-weight: bold; color: #1a3151; }
-        .back-btn { display: block; text-align: center; padding: 15px; text-decoration: none; background: #1a3151; color: white; }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>{{ player.name }} | Detay</title>
 </head>
-<body>
+<body class="bg-[#0b0f1a] text-white p-4">
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center py-4">
+            <a href="/?sifre={{ sifre }}" class="text-slate-500 font-bold text-xs uppercase hover:text-white transition">← Piyasaya Dön</a>
+        </header>
 
-<div class="card">
-    <div class="card-header">
-        <img src="{{ p.img }}" alt=""><br>
-        <h2>{{ p.name }}</h2>
-        <p>{{ p.kulup.isim }}</p>
+        {% if is_admin %}
+        <div class="bg-slate-900 p-6 rounded-[2.5rem] my-8 border border-blue-500 shadow-2xl">
+            <form action="/guncelle/{{ player.id }}" method="POST" class="grid grid-cols-2 md:grid-cols-4 gap-3 text-black text-xs font-bold">
+                <input type="hidden" name="sifre" value="{{ sifre }}">
+                <input type="text" name="name" value="{{ player.name }}" class="p-2 rounded-lg outline-none">
+                <input type="text" name="club" value="{{ player.club }}" class="p-2 rounded-lg outline-none">
+                <select name="position" class="p-2 rounded-lg outline-none bg-white">
+                    <option value="{{ player.position }}">{{ player.position }}</option>
+                    <option value="Kaleci">Kaleci</option><option value="Stoper">Stoper</option>
+                    <option value="Sağ Bek">Sağ Bek</option><option value="Sol Bek">Sol Bek</option>
+                    <option value="Defansif Orta Saha">Defansif Orta Saha</option>
+                    <option value="Merkez Orta Saha">Merkez Orta Saha</option>
+                    <option value="On Numara">On Numara</option>
+                    <option value="Sağ Kanat">Sağ Kanat</option><option value="Sol Kanat">Sol Kanat</option>
+                    <option value="Santrafor">Santrafor</option>
+                </select>
+                <input type="text" name="value" value="{{ player.value }}" class="p-2 rounded-lg">
+                <input type="text" name="age" value="{{ player.age }}" class="p-2 rounded-lg">
+                <input type="text" name="country" value="{{ player.country }}" class="p-2 rounded-lg">
+                <input type="text" name="rumors" value="{{ player.rumors }}" placeholder="Söylenti" class="p-2 rounded-lg col-span-2 border-2 border-red-500">
+                <input type="text" name="img" value="{{ player.img }}" class="p-2 rounded-lg col-span-2 border-2 border-green-500">
+                <button class="col-span-4 bg-blue-600 text-white p-3 rounded-xl font-black uppercase shadow-xl hover:bg-blue-500 transition">Bilgileri Güncelle</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+            <div class="bg-[#161b2a] p-10 rounded-[3rem] text-center shadow-2xl border border-slate-800">
+                <img src="{{ player.img }}" class="h-64 mx-auto object-contain drop-shadow-2xl mb-6" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166351.png'">
+                <h1 class="text-4xl font-black uppercase italic tracking-tighter">{{ player.name }}</h1>
+                <p class="text-blue-500 font-bold mb-4 uppercase text-[10px] tracking-widest">{{ player.club }} | {{ player.position }} | {{ player.age }} YAŞ</p>
+                <div class="bg-blue-600 p-4 rounded-2xl text-2xl font-black italic shadow-lg underline decoration-blue-300 mb-6">€{{ player.value }}M</div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-800/50 p-3 rounded-2xl border border-slate-700">
+                        <div class="text-blue-400 text-[9px] uppercase font-black">Lig Sıralaması</div>
+                        <div class="text-xl font-black tracking-tighter">#{{ lig_sira }}</div>
+                    </div>
+                    <div class="bg-slate-800/50 p-3 rounded-2xl border border-slate-700">
+                        <div class="text-blue-400 text-[9px] uppercase font-black">Takım Sıralaması</div>
+                        <div class="text-xl font-black tracking-tighter">#{{ takim_sira }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-[#161b2a] p-6 rounded-[2.5rem] border border-slate-800 shadow-xl">
+                    <h3 class="text-blue-500 font-black mb-4 uppercase text-[10px] tracking-widest">Piyasa Değer Grafiği</h3>
+                    <div class="h-40"><canvas id="chart"></canvas></div>
+                </div>
+                
+                <div class="bg-[#161b2a] p-6 rounded-[2.5rem] border border-slate-800 shadow-xl">
+                    <h3 class="text-green-500 font-black mb-2 uppercase text-[10px] tracking-widest">Transfer Geçmişi</h3>
+                    <div class="text-[11px] text-slate-300 leading-relaxed whitespace-pre-line italic font-medium">
+                        {{ player.history or 'Henüz bir transfer kaydı girilmedi.' }}
+                    </div>
+                </div>
+
+                <div class="bg-red-900/10 p-6 rounded-[2.5rem] border border-red-800 shadow-xl">
+                    <h3 class="text-red-500 font-black mb-2 uppercase text-[10px] tracking-widest animate-pulse">🔥 Aktif Söylentiler</h3>
+                    <div class="text-[13px] text-white font-bold italic bg-red-600/5 p-3 rounded-2xl border border-red-600/10">
+                        {{ player.rumors or 'Şu an aktif bir söylenti bulunmuyor.' }}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="stats">
-        <div class="stat-item"><span>Mevki:</span> <strong>{{ p.position }}</strong></div>
-        <div class="stat-item"><span>Piyasa Değeri:</span> <strong>€{{ p.value }}M</strong></div>
-    </div>
+    <script>
+        // Grafik verileri boş gelirse hata vermemesi için koruma
+        const labels = {{ (player.date_history or ['Oca']) | tojson }};
+        const dataValues = {{ (player.value_history or [player.value]) | tojson }};
 
-    <div class="rank-box">
-        <div class="rank-item">Ligdeki Sıralaması <span class="rank-val">#{{ lig_sira }}</span></div>
-        <div class="rank-item">Takımdaki Sırası <span class="rank-val">#{{ takim_sira }}</span></div>
-        <div class="rank-item">Mevkiindeki Sırası <span class="rank-val">#{{ mevki_sira }}</span></div>
-    </div>
-
-    <a href="{{ url_for('index', sifre=sifre) }}" class="back-btn">Geri Dön</a>
-</div>
-
+        new Chart(document.getElementById('chart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{ 
+                    data: dataValues, 
+                    borderColor: '#3b82f6', 
+                    backgroundColor: 'rgba(59,130,246,0.1)',
+                    fill: true, tension: 0.4, borderWidth: 4, pointRadius: 5
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#475569' } } } }
+        });
+    </script>
 </body>
 </html>
