@@ -2,47 +2,43 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>{{ p.name }} Detay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ p.name }} - Detay</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
+        .card { background: white; max-width: 500px; margin: 20px auto; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .card-header { background: #1a3151; color: white; padding: 20px; text-align: center; }
+        .card-header img { width: 120px; height: 120px; border-radius: 50%; border: 4px solid white; }
+        .stats { padding: 20px; }
+        .stat-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .rank-box { background: #eef2f7; padding: 15px; margin: 10px; border-radius: 8px; }
+        .rank-item { font-size: 14px; margin-bottom: 5px; color: #333; }
+        .rank-val { float: right; font-weight: bold; color: #1a3151; }
+        .back-btn { display: block; text-align: center; padding: 15px; text-decoration: none; background: #1a3151; color: white; }
+    </style>
 </head>
-<body class="bg-[#0b0f1a] text-white">
-    <div class="container mx-auto p-4 max-w-3xl py-12">
-        <a href="/?sifre={{ sifre }}" class="text-blue-500 font-black text-sm uppercase">← GERİ DÖN</a>
-        
-        <div class="mt-8 flex flex-col md:flex-row items-center gap-10">
-            <img src="{{ p.img }}" class="w-64 h-64 object-contain">
-            <div>
-                <img src="{{ p.kulup.logo }}" class="w-16 h-16 mb-4 object-contain">
-                <h1 class="text-4xl font-black italic uppercase leading-none">{{ p.name }}</h1>
-                <p class="text-blue-500 font-black mt-2 uppercase tracking-widest">{{ p.position }}</p>
-                <div class="text-5xl font-black mt-4 text-yellow-500 italic">{{ p.value }} M €</div>
-            </div>
-        </div>
+<body>
 
-        <div class="bg-red-900/20 border border-red-900 p-6 rounded-3xl mt-12 shadow-2xl">
-            <h3 class="text-red-500 font-black text-[10px] mb-2 uppercase">⚡ GÜNCEL SÖYLENTİ</h3>
-            <p class="text-lg italic font-bold">"{{ p.rumors or 'Henüz bir söylenti bulunmuyor.' }}"</p>
-        </div>
-
-        <div class="mt-12 space-y-6">
-            <h3 class="text-blue-400 font-black text-sm uppercase tracking-widest">💬 TARTIŞMALAR ({{ p.yorumlar|length }})</h3>
-            
-            <form action="/yorum_yap/{{ p.id }}" method="POST" class="bg-[#161b2a] p-6 rounded-3xl border border-slate-800 grid gap-4">
-                <input type="hidden" name="sifre" value="{{ sifre }}">
-                <input type="text" name="kullanici" placeholder="Adınız" class="p-3 rounded-xl text-black font-bold" required>
-                <textarea name="metin" placeholder="Düşünceniz nedir?" class="p-3 rounded-xl text-black font-bold" required></textarea>
-                <button type="submit" class="bg-blue-600 font-black py-3 rounded-xl uppercase">YORUMU GÖNDER</button>
-            </form>
-
-            <div class="space-y-4">
-                {% for y in p.yorumlar %}
-                <div class="bg-[#161b2a] p-5 rounded-3xl border border-slate-800">
-                    <p class="text-[10px] font-black text-blue-400 mb-1 uppercase">{{ y.kullanici }} diyor ki:</p>
-                    <p class="text-sm font-bold text-slate-200">{{ y.metin }}</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
+<div class="card">
+    <div class="card-header">
+        <img src="{{ p.img }}" alt=""><br>
+        <h2>{{ p.name }}</h2>
+        <p>{{ p.kulup.isim }}</p>
     </div>
+
+    <div class="stats">
+        <div class="stat-item"><span>Mevki:</span> <strong>{{ p.position }}</strong></div>
+        <div class="stat-item"><span>Piyasa Değeri:</span> <strong>€{{ p.value }}M</strong></div>
+    </div>
+
+    <div class="rank-box">
+        <div class="rank-item">Ligdeki Sıralaması <span class="rank-val">#{{ lig_sira }}</span></div>
+        <div class="rank-item">Takımdaki Sırası <span class="rank-val">#{{ takim_sira }}</span></div>
+        <div class="rank-item">Mevkiindeki Sırası <span class="rank-val">#{{ mevki_sira }}</span></div>
+    </div>
+
+    <a href="{{ url_for('index', sifre=sifre) }}" class="back-btn">Geri Dön</a>
+</div>
+
 </body>
 </html>
