@@ -137,6 +137,43 @@ def sil(player_id):
             db.session.commit()
     return redirect(url_for('home', sifre=s))
 
+# --- HABER SİLME ---
+@app.route('/haber-sil/<int:id>')
+def haber_sil(id):
+    if request.args.get('sifre') == "futbol123":
+        h = Haber.query.get(id)
+        if h:
+            db.session.delete(h)
+            db.session.commit()
+    return redirect(url_for('home', sifre=request.args.get('sifre')))
+
+# --- OYUNCU DÜZENLEME ---
+@app.route('/oyuncu-duzenle/<int:id>', methods=['POST'])
+def oyuncu_duzenle(id):
+    if request.form.get('sifre') == "futbol123":
+        p = Oyuncu.query.get_or_404(id)
+        p.name = request.form.get('name')
+        p.club = request.form.get('club')
+        p.position = request.form.get('position')
+        p.age = request.form.get('age')
+        p.country = request.form.get('country')
+        p.history = request.form.get('history')
+        p.rumors = request.form.get('rumors')
+        
+        yeni_deger = float(request.form.get('value', '0').replace(',', '.'))
+        if yeni_deger != p.value:
+            p.value = yeni_deger
+            bugun = datetime.now().strftime("%d/%m")
+            v_hist = list(p.value_history)
+            d_hist = list(p.date_history)
+            v_hist.append(yeni_deger)
+            d_hist.append(bugun)
+            p.value_history = v_hist
+            p.date_history = d_hist
+        db.session.commit()
+    return redirect(url_for('oyuncu_detay', player_id=id, sifre=request.form.get('sifre')))
+    
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
