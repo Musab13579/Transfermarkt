@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{{ kulup_adi }} | Kadro</title>
+</head>
+<body class="bg-[#0b0f1a] text-white p-6">
+    <div class="max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <a href="/?sifre={{ sifre }}" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">← Piyasaya Dön</a>
+        </header>
+
+        <div class="bg-[#161b2a] p-10 rounded-[3rem] border border-slate-800 text-center shadow-2xl mb-10">
+            <h1 class="text-4xl font-black uppercase italic text-blue-500 tracking-tighter">{{ kulup_adi }}</h1>
+            <div class="flex justify-center gap-8 mt-6">
+                <div>
+                    <p class="text-[9px] text-slate-500 font-bold uppercase">Kadro Değeri</p>
+                    <p class="text-xl font-black text-yellow-500">{{ toplam_deger }} M €</p>
+                </div>
+                <div class="border-l border-slate-800 pl-8">
+                    <p class="text-[9px] text-slate-500 font-bold uppercase">Oyuncu</p>
+                    <p class="text-xl font-black text-white">{{ kadro|length }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {% for p in kadro %}
+            <div class="bg-[#161b2a] p-5 rounded-[2rem] border border-slate-800 text-center hover:border-blue-500 transition">
+                <a href="/oyuncu/{{ p.id }}?sifre={{ sifre }}">
+                    <img src="{{ p.img }}" class="h-24 mx-auto mb-3 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166351.png'">
+                    <h3 class="text-[11px] font-black uppercase truncate">{{ p.name }}</h3>
+                    <p class="text-blue-500 font-black text-xs mt-2">{{ p.value }} M €</p>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
