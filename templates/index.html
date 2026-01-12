@@ -4,39 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Futbol Market</title>
+    <title>Futbol Market | Canlı</title>
 </head>
 <body class="bg-[#0b0f1a] text-white font-sans">
-    <div class="container mx-auto p-6 max-w-4xl">
-        <header class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl font-black italic text-blue-500 uppercase italic">FUTBOL MARKET</h1>
-            <a href="/menu?sifre={{ sifre }}" class="bg-slate-800 p-3 rounded-2xl text-xl">☰</a>
+
+    <div id="haberler" class="bg-red-600/90 py-2 overflow-hidden border-b border-red-500">
+        <div class="whitespace-nowrap animate-pulse font-black uppercase text-[10px] tracking-widest text-center">
+            {% if haberler %}
+                {% for h in haberler %} ⚡ {{ h.baslik }}: {{ h.icerik }} &nbsp;&nbsp;&nbsp;&nbsp; {% endfor %}
+            {% else %}
+                PİYASA HAREKETLİLİĞİ DEVAM EDİYOR...
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container mx-auto p-4 max-w-5xl">
+        <header class="flex justify-between items-center py-6">
+            <h1 class="text-2xl font-black italic text-blue-500 uppercase tracking-tighter">FUTBOL MARKET</h1>
+            <a href="/menu?sifre={{ sifre }}" class="bg-blue-600 w-11 h-11 flex items-center justify-center rounded-2xl shadow-lg hover:scale-110 transition">☰</a>
         </header>
 
+        <div id="kulupler" class="mb-10">
+            <h2 class="text-[9px] font-black text-slate-500 mb-4 tracking-[0.3em] uppercase italic">ANLAŞMALI KULÜPLER</h2>
+            <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+                {% for k in kulupler %}
+                <a href="/kulup/{{ k.ad }}?sifre={{ sifre }}" class="flex-none w-16 h-16 bg-[#161b2a] rounded-2xl border border-slate-800 p-3 hover:border-blue-500 transition shadow-xl">
+                    <img src="{{ k.logo }}" class="w-full h-full object-contain">
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div id="en-iyiler" class="mb-12">
+            <h2 class="text-[9px] font-black text-yellow-500 mb-6 tracking-[0.3em] uppercase italic text-center">🏆 MEVKİLERİN ZİRVESİ</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {% for mevki, p in en_iyiler.items() %}
+                <div class="bg-slate-900/40 p-4 rounded-[2rem] border border-slate-800/50 text-center backdrop-blur-sm">
+                    <p class="text-[7px] font-bold text-blue-400 uppercase mb-1">{{ mevki }}</p>
+                    <p class="text-[10px] font-black uppercase truncate">{{ p.name if p else '---' }}</p>
+                    <p class="text-[9px] text-yellow-500 font-bold mt-1">{{ p.value if p else '0' }} M €</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
         {% if is_admin %}
-        <div class="bg-[#161b2a] p-6 rounded-[2rem] border-2 border-blue-600 mb-10 shadow-2xl">
-            <h2 class="text-xs font-black mb-4 text-blue-400 uppercase tracking-widest text-center">YENİ OYUNCU EKLE</h2>
-            <form action="/ekle" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-[#161b2a] p-6 rounded-[2.5rem] border-2 border-blue-600 mb-12 shadow-2xl shadow-blue-900/20">
+            <h3 class="text-xs font-black text-center mb-6 text-blue-400 tracking-widest uppercase">YÖNETİCİ KONTROL MERKEZİ</h3>
+            
+            <form action="/ekle" method="POST" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 <input type="hidden" name="sifre" value="{{ sifre }}">
-                <input type="text" name="name" placeholder="Oyuncu İsmi" class="bg-slate-900 p-4 rounded-2xl outline-none border border-slate-800" required>
-                <input type="text" name="club" placeholder="Kulüp" class="bg-slate-900 p-4 rounded-2xl outline-none border border-slate-800">
-                <input type="text" name="value" placeholder="Değer (Örn: 15.5)" class="bg-slate-900 p-4 rounded-2xl outline-none border border-slate-800">
-                <input type="text" name="img" placeholder="Resim URL" class="bg-slate-900 p-4 rounded-2xl outline-none border border-slate-800">
-                <button class="md:col-span-2 bg-blue-600 p-4 rounded-2xl font-black uppercase hover:bg-blue-500 transition">KAYDET</button>
+                <input type="text" name="name" placeholder="Oyuncu Adı" class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs" required>
+                <input type="text" name="club" placeholder="Kulüp" class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs">
+                <select name="position" class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs text-slate-400">
+                    <option>Kaleci</option><option>Stoper</option><option>Sol Bek</option><option>Sağ Bek</option>
+                    <option>Defansif Orta Saha</option><option>Merkez Orta Saha</option><option>On Numara</option>
+                    <option>Sol Kanat</option><option>Sağ Kanat</option><option>Santrafor</option>
+                </select>
+                <input type="text" name="value" placeholder="Milyon € (Örn: 25.5)" class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs">
+                <input type="text" name="img" placeholder="Resim URL" class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs col-span-2">
+                <button class="bg-blue-600 p-3 rounded-xl font-black uppercase text-xs col-span-2">OYUNCUYU SİSTEME EKLE</button>
             </form>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-800 pt-6">
+                <form action="/yonetim" method="POST" class="space-y-2">
+                    <input type="hidden" name="sifre" value="{{ sifre }}"><input type="hidden" name="tip" value="haber">
+                    <input type="text" name="baslik" placeholder="Haber Başlığı" class="w-full bg-slate-900 p-3 rounded-xl text-xs" required>
+                    <input type="text" name="icerik" placeholder="Haber İçeriği" class="w-full bg-slate-900 p-3 rounded-xl text-xs" required>
+                    <button class="w-full bg-red-600 p-3 rounded-xl font-bold text-xs uppercase">HABER YAYINLA</button>
+                </form>
+                <form action="/yonetim" method="POST" class="space-y-2">
+                    <input type="hidden" name="sifre" value="{{ sifre }}"><input type="hidden" name="tip" value="kulup">
+                    <input type="text" name="ad" placeholder="Kulüp Adı" class="w-full bg-slate-900 p-3 rounded-xl text-xs" required>
+                    <input type="text" name="logo" placeholder="Logo Link (URL)" class="w-full bg-slate-900 p-3 rounded-xl text-xs" required>
+                    <button class="w-full bg-slate-700 p-3 rounded-xl font-bold text-xs uppercase">KULÜBÜ KAYDET</button>
+                </form>
+            </div>
         </div>
         {% endif %}
 
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+        <h2 class="text-[9px] font-black text-blue-500 mb-6 tracking-[0.3em] uppercase italic">📊 GÜNCEL PİYASA DEĞERLERİ</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             {% for p in players %}
-            <div class="bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800 text-center shadow-lg">
-                <img src="{{ p.img }}" class="h-32 mx-auto mb-3 object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166351.png'">
-                <h3 class="font-black uppercase text-sm mb-1">{{ p.name }}</h3>
-                <p class="text-[10px] text-slate-500 mb-3">{{ p.club }}</p>
-                <div class="bg-blue-500/10 py-2 rounded-2xl text-blue-400 font-black text-xs">{{ p.value }} M €</div>
+            <div class="bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800 text-center relative hover:border-blue-500 transition shadow-lg group">
+                <span class="absolute top-4 right-4 bg-slate-800 text-[7px] font-black px-2 py-1 rounded-lg uppercase text-slate-400 group-hover:bg-blue-600 group-hover:text-white">{{ p.position }}</span>
+                <a href="/oyuncu/{{ p.id }}?sifre={{ sifre }}">
+                    <img src="{{ p.img }}" class="h-32 mx-auto mb-4 object-contain group-hover:scale-110 transition duration-300" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166351.png'">
+                    <h4 class="font-black uppercase text-sm mb-1 tracking-tighter">{{ p.name }}</h4>
+                    <p class="text-[9px] text-slate-500 mb-4 uppercase">{{ p.club }}</p>
+                    <div class="bg-blue-600/10 py-3 rounded-2xl text-blue-400 font-black text-xs">{{ p.value }} M €</div>
+                </a>
             </div>
             {% endfor %}
         </div>
     </div>
+
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </body>
 </html>
