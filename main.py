@@ -38,28 +38,34 @@ class Kulup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ad = db.Column(db.String(100))
     logo = db.Column(db.String(500))
-    
-    # Bu kısmı main.py içindeki db.create_all() olan yerle değiştir:
+
+# --- VERİTABANI OLUŞTURMA ---
 with app.app_context():
     try:
         db.create_all()
         print("Veritabanı tabloları başarıyla oluşturuldu.")
     except Exception as e:
         print(f"Tablo oluşturma hatası: {e}")
-        
+
+# --- ROTALAR ---
 @app.route('/tablo-kur')
 def tablo_kur():
-    db.create_all()
-    return "Veritabanı tabloları mermi gibi kuruldu! Ana sayfaya dönebilirsin."
-    
+    try:
+        db.create_all()
+        return "Veritabanı tabloları mermi gibi kuruldu! Ana sayfaya dönebilirsin."
+    except Exception as e:
+        return f"Hata: {str(e)}"
 
 @app.route('/')
 def home():
-    sifre = request.args.get('sifre')
-    players = Oyuncu.query.order_by(Oyuncu.value.desc()).all()
-    news = Haber.query.order_by(Haber.id.desc()).all()
-    clubs = Kulup.query.all()
-    return render_template('index.html', players=players, news=news, clubs=clubs, is_admin=(sifre == "futbol123"), sifre=sifre)
+    try:
+        sifre = request.args.get('sifre')
+        players = Oyuncu.query.order_by(Oyuncu.value.desc()).all()
+        news = Haber.query.order_by(Haber.id.desc()).all()
+        clubs = Kulup.query.all()
+        return render_template('index.html', players=players, news=news, clubs=clubs, is_admin=(sifre == "futbol123"), sifre=sifre)
+    except Exception as e:
+        return f"Veritabanı hatası! Lütfen önce /tablo-kur adresine gidin. Detay: {str(e)}"
 
 @app.route('/ekle', methods=['POST'])
 def ekle():
@@ -68,7 +74,10 @@ def ekle():
     if s == "futbol123":
         if tip == 'player':
             v_raw = request.form.get('value', '0').replace(',', '.')
-            v = float(v_raw)
+            try:
+                v = float(v_raw)
+            except:
+                v = 0.0
             bugun = datetime.now().strftime("%d/%m")
             yeni = Oyuncu(
                 name=request.form.get('name'), club=request.form.get('club'),
@@ -91,7 +100,7 @@ def oyuncu_detay(player_id):
     lig_sira = Oyuncu.query.filter(Oyuncu.value > p.value).count() + 1
     takim_sira = Oyuncu.query.filter(Oyuncu.club == p.club, Oyuncu.value > p.value).count() + 1
     mevki_sira = Oyuncu.query.filter(Oyuncu.position == p.position, Oyuncu.value > p.value).count() + 1
-    return render_template('detay.html', player=p, is_admin=(s == "futbol123"), sifre=s, lig_sira=lig_sira, takim_sira=takim_sira, mevki_sira=mevki_sira)
+    return render_template('detay.html', player=p, is_admin=(s == "futbol123"), sifre=s, lig_sira=lig_sira, Nightmare=takim_sira, mevki_sira=mevki_sira)
 
 @app.route('/kulup/<string:kulup_adi>')
 def kulup_sayfasi(kulup_adi):
@@ -101,11 +110,13 @@ def kulup_sayfasi(kulup_adi):
 
 @app.route('/sil/<int:player_id>')
 def sil(player_id):
-    if request.args.get('sifre') == "futbol123":
+    s = request.args.get('sifre')
+    if s == "futbol123":
         p = Oyuncu.query.get(player_id)
-        db.session.delete(p)
-        db.session.commit()
-    return redirect(url_for('home', sifre=request.args.get('sifre')))
+        if p:
+            db.session.delete(p)
+            db.session.commit()
+    return redirect(url_for('home', sifre=s))
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
