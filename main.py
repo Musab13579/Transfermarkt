@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
-# --- VERİTABANI ---
+# --- POSTGRESQL BAĞLANTISI ---
 uri = os.getenv("DATABASE_URL")
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
@@ -16,14 +17,17 @@ db = SQLAlchemy(app)
 # --- MODELLER ---
 class Oyuncu(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(100))
     club = db.Column(db.String(100))
-    value = db.Column(db.Float, default=0.0)
+    value = db.Column(db.Float)
     age = db.Column(db.String(10))
     country = db.Column(db.String(50))
     position = db.Column(db.String(50))
     img = db.Column(db.String(500))
     rumors = db.Column(db.Text)
+    history = db.Column(db.Text)
+    value_history = db.Column(db.JSON, default=list)
+    date_history = db.Column(db.JSON, default=list)
 
 class Haber(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,64 +42,59 @@ class Kulup(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- ROTALAR ---
 @app.route('/')
 def home():
     sifre = request.args.get('sifre')
     players = Oyuncu.query.order_by(Oyuncu.value.desc()).all()
-    haberler = Haber.query.order_by(Haber.id.desc()).all()
-    kulupler = Kulup.query.all()
-    
-    # Mevkilere göre en pahalı oyuncuları bulma (En İyi 11 Mantığı)
-    mevkiler = ["Kaleci", "Stoper", "Sol Bek", "Sağ Bek", "Defansif Orta Saha", "Merkez Orta Saha", "On Numara", "Sol Kanat", "Sağ Kanat", "Santrafor"]
-    en_iyiler = {}
-    for m in mevkiler:
-        en_iyiler[m] = Oyuncu.query.filter_by(position=m).order_by(Oyuncu.value.desc()).first()
-
-    return render_template('index.html', players=players, haberler=haberler, kulupler=kulupler, en_iyiler=en_iyiler, is_admin=(sifre == "futbol123"), sifre=sifre)
+    news = Haber.query.order_by(Haber.id.desc()).all()
+    clubs = Kulup.query.all()
+    return render_template('index.html', players=players, news=news, clubs=clubs, is_admin=(sifre == "futbol123"), sifre=sifre)
 
 @app.route('/ekle', methods=['POST'])
 def ekle():
     s = request.form.get('sifre')
+    tip = request.form.get('tip', 'player')
     if s == "futbol123":
-        v = request.form.get('value', '0').replace(',', '.')
-        yeni = Oyuncu(
-            name=request.form.get('name'), club=request.form.get('club'),
-            value=float(v) if v else 0.0, age=request.form.get('age'),
-            country=request.form.get('country'), position=request.form.get('position'),
-            img=request.form.get('img'), rumors=request.form.get('rumors')
-        )
-        db.session.add(yeni)
-        db.session.commit()
-    return redirect(url_for('home', sifre=s))
-
-@app.route('/kulup/<string:kulup_adi>')
-def kulup_detay(kulup_adi):
-    s = request.args.get('sifre')
-    kadro = Oyuncu.query.filter_by(club=kulup_adi).all()
-    toplam_deger = sum(p.value for p in kadro)
-    return render_template('kulup.html', kadro=kadro, kulup_adi=kulup_adi, toplam_deger=toplam_deger, sifre=s)
-
-@app.route('/yonetim', methods=['POST'])
-def yonetim():
-    s = request.form.get('sifre')
-    tip = request.form.get('tip')
-    if s == "futbol123":
-        if tip == "haber":
-            db.session.add(Haber(baslik=request.form.get('baslik'), icerik=request.form.get('icerik')))
-        elif tip == "kulup":
+        if tip == 'player':
+            v_raw = request.form.get('value', '0').replace(',', '.')
+            v = float(v_raw)
+            bugun = datetime.now().strftime("%d/%m")
+            yeni = Oyuncu(
+                name=request.form.get('name'), club=request.form.get('club'),
+                value=v, age=request.form.get('age'), country=request.form.get('country'),
+                position=request.form.get('position'), img=request.form.get('img'),
+                rumors=request.form.get('rumors'), value_history=[v], date_history=[bugun]
+            )
+            db.session.add(yeni)
+        elif tip == 'club':
             db.session.add(Kulup(ad=request.form.get('ad'), logo=request.form.get('logo')))
+        elif tip == 'news':
+            db.session.add(Haber(baslik=request.form.get('baslik'), icerik=request.form.get('icerik')))
         db.session.commit()
     return redirect(url_for('home', sifre=s))
 
 @app.route('/oyuncu/<int:player_id>')
-def detay(player_id):
+def oyuncu_detay(player_id):
     p = Oyuncu.query.get_or_404(player_id)
-    return render_template('detay.html', player=p, sifre=request.args.get('sifre'))
+    s = request.args.get('sifre')
+    lig_sira = Oyuncu.query.filter(Oyuncu.value > p.value).count() + 1
+    takim_sira = Oyuncu.query.filter(Oyuncu.club == p.club, Oyuncu.value > p.value).count() + 1
+    mevki_sira = Oyuncu.query.filter(Oyuncu.position == p.position, Oyuncu.value > p.value).count() + 1
+    return render_template('detay.html', player=p, is_admin=(s == "futbol123"), sifre=s, lig_sira=lig_sira, takim_sira=takim_sira, mevki_sira=mevki_sira)
 
-@app.route('/menu')
-def menu():
-    return render_template('menu.html', sifre=request.args.get('sifre'))
+@app.route('/kulup/<string:kulup_adi>')
+def kulup_sayfasi(kulup_adi):
+    kadro = Oyuncu.query.filter_by(club=kulup_adi).all()
+    toplam_deger = round(sum(p.value for p in kadro), 2)
+    return render_template('kulup.html', kadro=kadro, kulup_adi=kulup_adi, toplam_deger=toplam_deger, sifre=request.args.get('sifre'))
+
+@app.route('/sil/<int:player_id>')
+def sil(player_id):
+    if request.args.get('sifre') == "futbol123":
+        p = Oyuncu.query.get(player_id)
+        db.session.delete(p)
+        db.session.commit()
+    return redirect(url_for('home', sifre=request.args.get('sifre')))
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
