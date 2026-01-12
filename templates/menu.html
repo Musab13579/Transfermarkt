@@ -2,38 +2,43 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Kontrol Paneli</title>
+    <title>Yönetim Paneli</title>
 </head>
 <body class="bg-[#0b0f1a] text-white p-6 font-sans">
-    <div class="max-w-md mx-auto">
+    <div class="max-w-2xl mx-auto pb-20">
         <header class="flex justify-between items-center mb-10">
-            <h1 class="text-xl font-black italic text-blue-500 uppercase">MENÜ</h1>
-            <a href="/?sifre={{ sifre }}" class="text-slate-500 text-xs font-bold uppercase">← Geri</a>
+            <h1 class="text-2xl font-black italic text-blue-500 italic uppercase">YÖNETİM MERKEZİ</h1>
+            <a href="/?sifre={{ sifre }}" class="bg-slate-800 px-4 py-2 rounded-xl text-xs font-bold uppercase hover:bg-blue-600 transition">← Siteye Dön</a>
         </header>
 
-        <div class="space-y-4">
-            <a href="/?sifre={{ sifre }}" class="flex items-center justify-between bg-[#161b2a] p-5 rounded-3xl border border-slate-800 hover:border-blue-500 transition">
-                <span class="font-bold tracking-tight">Piyasa Listesi</span>
-                <span class="text-blue-500 text-xl">➔</span>
-            </a>
-
-            <div class="bg-slate-900/50 p-6 rounded-[2.5rem] border border-dashed border-slate-700 text-center">
-                <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-2">Erişim Seviyesi</p>
-                {% if sifre == 'futbol123' %}
-                    <span class="text-green-500 font-bold italic">YÖNETİCİ AKTİF</span>
-                {% else %}
-                    <span class="text-red-500 font-bold italic">SINIRLI ERİŞİM</span>
-                {% endif %}
+        {% if sifre == 'futbol123' %}
+        <div class="grid grid-cols-1 gap-8">
+            <div class="bg-[#161b2a] p-8 rounded-[2.5rem] border border-red-900/30">
+                <h2 class="text-red-500 font-black mb-4 uppercase tracking-widest text-sm">🔥 Yeni Haber Ekle</h2>
+                <form action="/haber_ekle" method="POST" class="space-y-3">
+                    <input type="hidden" name="sifre" value="{{ sifre }}">
+                    <input type="text" name="baslik" placeholder="Haber Başlığı" class="w-full p-4 bg-slate-900 rounded-2xl outline-none border border-slate-800 text-sm font-bold">
+                    <textarea name="icerik" placeholder="Haber İçeriği..." class="w-full p-4 bg-slate-900 rounded-2xl outline-none border border-slate-800 text-sm h-24"></textarea>
+                    <button class="w-full bg-red-600 p-4 rounded-2xl font-black uppercase text-xs hover:bg-red-500">Haberi Yayınla</button>
+                </form>
             </div>
 
-            <div class="p-6 text-center">
-                <p class="text-slate-600 text-[10px] leading-relaxed uppercase font-medium">
-                    Veriler PostgreSQL üzerinden <br> güvenli şekilde saklanmaktadır.
-                </p>
+            <div class="bg-[#161b2a] p-8 rounded-[2.5rem] border border-blue-900/30">
+                <h2 class="text-blue-500 font-black mb-4 uppercase tracking-widest text-sm">🛡️ Yeni Kulüp Ekle</h2>
+                <form action="/kulup_ekle" method="POST" class="space-y-3">
+                    <input type="hidden" name="sifre" value="{{ sifre }}">
+                    <input type="text" name="ad" placeholder="Kulüp Adı" class="w-full p-4 bg-slate-900 rounded-2xl outline-none border border-slate-800 text-sm font-bold">
+                    <input type="text" name="logo" placeholder="Logo URL (Link)" class="w-full p-4 bg-slate-900 rounded-2xl outline-none border border-slate-800 text-sm font-bold">
+                    <button class="w-full bg-blue-600 p-4 rounded-2xl font-black uppercase text-xs hover:bg-blue-500">Kulübü Kaydet</button>
+                </form>
             </div>
         </div>
+        {% else %}
+            <div class="text-center p-10 bg-red-900/10 rounded-3xl border border-red-900/20">
+                <p class="text-red-500 font-black uppercase tracking-widest text-sm">Bu panele erişim yetkiniz yok.</p>
+            </div>
+        {% endif %}
     </div>
 </body>
 </html>
