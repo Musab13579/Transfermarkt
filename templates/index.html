@@ -85,11 +85,20 @@
                 </a>
             </div>
             {% endif %}
+
+            {% if is_admin %}
+<details class="mt-2">
+    <summary class="text-blue-500 text-[10px] font-bold cursor-pointer">DÜZENLE</summary>
+    <form action="/haber-duzenle/{{ n.id }}" method="POST" class="mt-2 space-y-2">
+        <input type="hidden" name="sifre" value="{{ sifre }}">
+        <input type="text" name="baslik" value="{{ n.baslik }}" class="w-full p-2 text-black text-[10px] rounded">
+        <textarea name="icerik" class="w-full p-2 text-black text-[10px] rounded">{{ n.icerik }}</textarea>
+        <button type="submit" class="bg-blue-600 text-white text-[10px] p-1 rounded w-full">KAYDET</button>
+    </form>
+</details>
+{% endif %}
         </div>
-        {% endfor %}
-                
-            </div>
-        </div>
+                        {% endfor %} </div> </div>
 
         <div class="mb-12 space-y-4">
             <div class="flex flex-col md:flex-row gap-3">
