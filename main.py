@@ -47,6 +47,11 @@ with app.app_context():
     except Exception as e:
         print(f"Tablo oluşturma hatası: {e}")
         
+@app.route('/tablo-kur')
+def tablo_kur():
+    db.create_all()
+    return "Veritabanı tabloları mermi gibi kuruldu! Ana sayfaya dönebilirsin."
+    
 
 @app.route('/')
 def home():
