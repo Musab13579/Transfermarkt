@@ -2,33 +2,27 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
-from sqlalchemy.dialects import postgresql
-# Eğer hata devam ederse, koda şunu ekle:
-import sqlalchemy
-import sqlalchemy.dialects.postgresql
-# PostgreSQL sayısal tür hatasını düzelten özel ayar
 import decimal
+from sqlalchemy import event
 from sqlalchemy.dialects.postgresql import NUMERIC
-from sqlalchemy import exc
-
-def fix_numeric_type(value, dialect):
-    return decimal.Decimal(value) if value is not None else None
-
-# Bu satır SQLAlchemy'ye 'Bilinmeyen tür' hatası yerine ne yapacağını öğretir
-NUMERIC.result_processor = fix_numeric_type
 
 app = Flask(__name__)
 
-# Veritabanı bağlantısı
-# Eski 13. satırın yerine gelecek kısım:
+# 1. VERİTABANI BAĞLANTISI
 uri = os.getenv("DATABASE_URL")
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
-
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 db = SQLAlchemy(app)
+
+# 2. KRİTİK TAMİR: PostgreSQL Sayı Hatasını Giderme
+# Bu kısım loglarındaki 'Unknown PG numeric type' hatasını çözer.
+def fix_numeric(value, dialect):
+    return float(value) if value is not None else None
+
+NUMERIC.result_processor = fix_numeric
 
 # --- MODELLER ---
 class Kulup(db.Model):
@@ -59,7 +53,7 @@ class Yorum(db.Model):
     metin = db.Column(db.Text)
     oyuncu_id = db.Column(db.Integer, db.ForeignKey('oyuncu.id'))
 
-# --- ROTARLAR ---
+# --- ROTALAR ---
 @app.route('/')
 def index():
     sifre = request.args.get('sifre')
@@ -93,9 +87,9 @@ def ekle():
         except:
             val = 0.0
         y_o = Oyuncu(
-            name=request.form['name'], 
+            name=request.form['name'],
             position=request.form['position'],
-            value=val, 
+            value=val,
             img=request.form['img'],
             rumors=request.form.get('rumors', ''),
             kulup_id=int(request.form['kulup_id'])
