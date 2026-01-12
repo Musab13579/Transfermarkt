@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.dialects.postgresql import NUMERIC
 from datetime import datetime
 import os
-from sqlalchemy.dialects.postgresql import NUMERIC
 
 app = Flask(__name__)
 
-# Veritabanı Bağlantısı
+# VERİTABANI BAĞLANTISI
 uri = os.getenv("DATABASE_URL")
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
@@ -15,12 +15,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# PostgreSQL Numeric Hatası Tamiri (Cuk oturan kısım burası)
+# PostgreSQL Numeric Hatası Tamiri
 def fix_numeric(value, dialect):
     return float(value) if value is not None else None
 NUMERIC.result_processor = fix_numeric
 
-# MODELLER
+# MODELLER (Tamamen eski usul db.Column, 3.13'te en garantisi budur)
 class Kulup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     isim = db.Column(db.String(100), nullable=False)
@@ -56,6 +56,7 @@ def menu():
 @app.route('/oyuncu/<int:id>')
 def detay(id):
     p = Oyuncu.query.get_or_404(id)
+    # Sıralama mantığı
     lig_sira = Oyuncu.query.filter(Oyuncu.value > p.value).count() + 1
     takim_sira = Oyuncu.query.filter(Oyuncu.kulup_id == p.kulup_id, Oyuncu.value > p.value).count() + 1
     mevki_sira = Oyuncu.query.filter(Oyuncu.position == p.position, Oyuncu.value > p.value).count() + 1
@@ -72,6 +73,8 @@ def ekle_hersey():
         n = Oyuncu(name=request.form['name'], position=request.form['position'], 
                    value=float(request.form['value']), img=request.form['img'],
                    kulup_id=int(request.form['kulup_id']))
+    elif tip == "haber":
+        n = Haber(baslik=request.form['name'], icerik=request.form['icerik'])
     db.session.add(n)
     db.session.commit()
     return redirect(url_for('index', sifre=sifre))
