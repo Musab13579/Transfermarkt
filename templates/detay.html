@@ -1,21 +1,62 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
     <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>{{ player.name }} | Detay</title>
 </head>
-<body class="bg-[#0b0f1a] text-white p-6">
-    <div class="max-w-2xl mx-auto">
-        <a href="/?sifre={{ sifre }}" class="text-xs text-slate-500 uppercase font-black tracking-widest">← Piyasaya Dön</a>
-        <div class="mt-10 bg-[#161b2a] p-10 rounded-[3rem] border border-slate-800 flex flex-col md:flex-row items-center gap-10">
-            <img src="{{ player.img }}" class="h-64 object-contain">
-            <div class="text-center md:text-left">
-                <h1 class="text-4xl font-black uppercase italic italic text-blue-500">{{ player.name }}</h1>
-                <p class="text-slate-400 font-bold mt-2 uppercase text-sm">{{ player.club }} | {{ player.position }}</p>
-                <div class="mt-8 bg-blue-600 px-10 py-4 rounded-2xl text-2xl font-black shadow-2xl inline-block">{{ player.value }} M €</div>
+<body class="bg-[#0b0f1a] text-white p-4">
+    <div class="max-w-4xl mx-auto">
+        <header class="py-4"><a href="/?sifre={{ sifre }}" class="text-slate-500 font-black text-[10px] uppercase">← Piyasaya Dön</a></header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+            <div class="bg-[#161b2a] p-10 rounded-[3rem] text-center shadow-2xl border border-slate-800">
+                <img src="{{ player.img }}" class="h-64 mx-auto object-contain mb-6">
+                <h1 class="text-4xl font-black uppercase italic tracking-tighter">{{ player.name }}</h1>
+                <p class="text-blue-500 font-bold mb-4 uppercase text-[10px]">{{ player.club }} | {{ player.position }}</p>
+                <div class="bg-blue-600 p-4 rounded-2xl text-2xl font-black italic shadow-lg">{{ player.value }} M €</div>
+                
+                <div class="grid grid-cols-3 gap-2 mt-6">
+                    <div class="bg-slate-800/50 p-3 rounded-2xl text-center">
+                        <p class="text-[7px] text-slate-500 uppercase font-black">Ligde</p>
+                        <p class="text-sm font-black text-blue-400">{{ lig_sira }}.</p>
+                    </div>
+                    <div class="bg-slate-800/50 p-3 rounded-2xl text-center border border-blue-500/20">
+                        <p class="text-[7px] text-slate-500 uppercase font-black">Takımda</p>
+                        <p class="text-sm font-black text-white">{{ takim_sira }}.</p>
+                    </div>
+                    <div class="bg-slate-800/50 p-3 rounded-2xl text-center">
+                        <p class="text-[7px] text-slate-500 uppercase font-black">Mevkide</p>
+                        <p class="text-sm font-black text-blue-400">{{ mevki_sira }}.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl">
+                    <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Piyasa Değer Grafiği</h3>
+                    <div class="h-40"><canvas id="chart"></canvas></div>
+                </div>
+                <div class="bg-red-900/10 p-6 rounded-[2rem] border border-red-800 shadow-xl">
+                    <h3 class="text-red-500 font-black mb-2 uppercase text-[9px] tracking-widest animate-pulse">🔥 Aktif Söylentiler</h3>
+                    <p class="text-[12px] italic text-white/90">{{ player.rumors or 'Sakin...' }}</p>
+                </div>
             </div>
         </div>
     </div>
+    <script>
+        new Chart(document.getElementById('chart'), {
+            type: 'line',
+            data: {
+                labels: {{ (player.date_history or []) | tojson }},
+                datasets: [{ 
+                    data: {{ (player.value_history or []) | tojson }}, 
+                    borderColor: '#3b82f6', fill: true, tension: 0.4, borderWidth: 3, pointRadius: 4
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+        });
+    </script>
 </body>
 </html>
