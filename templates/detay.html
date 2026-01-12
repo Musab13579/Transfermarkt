@@ -32,17 +32,37 @@
                     </div>
                 </div>
             </div>
-
-            <div class="space-y-6">
-                <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl">
-                    <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Piyasa Değer Grafiği</h3>
-                    <div class="h-40"><canvas id="chart"></canvas></div>
-                </div>
-                <div class="bg-red-900/10 p-6 rounded-[2rem] border border-red-800 shadow-xl">
-                    <h3 class="text-red-500 font-black mb-2 uppercase text-[9px] tracking-widest animate-pulse">🔥 Aktif Söylentiler</h3>
-                    <p class="text-[12px] italic text-white/90">{{ player.rumors or 'Sakin...' }}</p>
-                </div>
+<div class="space-y-6">
+    <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl">
+        <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Oyuncu Profili</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-[8px] text-slate-500 font-bold uppercase italic">Doğum Tarihi / Yaş</p>
+                <p class="text-xs font-black text-white">{{ player.age }}</p>
             </div>
+            <div>
+                <p class="text-[8px] text-slate-500 font-bold uppercase italic">Uyruk</p>
+                <p class="text-xs font-black text-white">{{ player.country }}</p>
+            </div>
+        </div>
+        <div class="mt-6 border-t border-slate-800/50 pt-4">
+            <p class="text-[8px] text-slate-500 font-bold uppercase mb-2 italic">Kariyer / Transfer Geçmişi</p>
+            <p class="text-[11px] text-slate-300 leading-relaxed italic">
+                {{ player.history if player.history else 'Kariyer bilgisi henüz girilmemiş.' }}
+            </p>
+        </div>
+    </div>
+
+    <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl">
+        <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Piyasa Değer Grafiği</h3>
+        <div class="h-40"><canvas id="chart"></canvas></div>
+    </div>
+
+    <div class="bg-red-900/10 p-6 rounded-[2rem] border border-red-800 shadow-xl">
+        <h3 class="text-red-500 font-black mb-2 uppercase text-[9px] tracking-widest animate-pulse">🔥 Aktif Söylentiler</h3>
+        <p class="text-[12px] italic text-white/90">{{ player.rumors or 'Sakin...' }}</p>
+    </div>
+    </div>
         </div>
     </div>
     <script>
