@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Kontrol Paneli</title>
+</head>
+<body class="bg-[#0b0f1a] text-white p-6 font-sans">
+    <div class="max-w-md mx-auto">
+        <header class="flex justify-between items-center mb-10">
+            <h1 class="text-xl font-black italic text-blue-500 uppercase">MENÜ</h1>
+            <a href="/?sifre={{ sifre }}" class="text-slate-500 text-xs font-bold uppercase">← Geri</a>
+        </header>
+
+        <div class="space-y-4">
+            <a href="/?sifre={{ sifre }}" class="flex items-center justify-between bg-[#161b2a] p-5 rounded-3xl border border-slate-800 hover:border-blue-500 transition">
+                <span class="font-bold tracking-tight">Piyasa Listesi</span>
+                <span class="text-blue-500 text-xl">➔</span>
+            </a>
+
+            <div class="bg-slate-900/50 p-6 rounded-[2.5rem] border border-dashed border-slate-700 text-center">
+                <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-2">Erişim Seviyesi</p>
+                {% if sifre == 'futbol123' %}
+                    <span class="text-green-500 font-bold italic">YÖNETİCİ AKTİF</span>
+                {% else %}
+                    <span class="text-red-500 font-bold italic">SINIRLI ERİŞİM</span>
+                {% endif %}
+            </div>
+
+            <div class="p-6 text-center">
+                <p class="text-slate-600 text-[10px] leading-relaxed uppercase font-medium">
+                    Veriler PostgreSQL üzerinden <br> güvenli şekilde saklanmaktadır.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
