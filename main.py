@@ -104,6 +104,11 @@ def ekle():
         db.session.commit()
     return redirect(url_for('home', sifre=s))
 
+@app.route('/ping')
+def ping():
+    return "Sistem Aktif", 200
+    
+
 @app.route('/oyuncu/<int:player_id>')
 def oyuncu_detay(player_id):
     p = Oyuncu.query.get_or_404(player_id)
