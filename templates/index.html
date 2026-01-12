@@ -3,61 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transfermarkt - Ana Sayfa</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Futbol Market | Profesyonel Liste</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
-        .header { background: #1a3151; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; }
-        .menu-btn { color: white; font-size: 24px; text-decoration: none; cursor: pointer; }
-        .player-list { margin-top: 20px; }
-        .player-card { background: white; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; border-left: 5px solid #1a3151; text-decoration: none; color: black; }
-        .player-card img { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; }
-        .player-info { flex-grow: 1; }
-        .player-val { font-weight: bold; color: #1a3151; }
-        .admin-panel { background: #e3e3e3; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .animate-marquee { display: inline-block; animation: marquee 30s linear infinite; }
+        .hidden-list { display: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body>
+<body class="bg-[#0b0f1a] text-white font-sans">
 
-<div class="header">
-    <span>TRANSFERMARKT</span>
-    <a href="{{ url_for('menu', sifre=sifre) }}" class="menu-btn"><i class="fas fa-ellipsis-v"></i></a>
-</div>
-
-<div class="player-list">
-    <h3>En Değerli Oyuncular</h3>
-    {% for p in players %}
-    <a href="{{ url_for('detay', id=p.id, sifre=sifre) }}" class="player-card">
-        <img src="{{ p.img }}" alt="">
-        <div class="player-info">
-            <div><strong>{{ p.name }}</strong></div>
-            <div style="font-size: 12px; color: gray;">{{ p.position }} - {{ p.kulup.isim }}</div>
+    {% macro render_best(players, pos_name) %}
+        {# PostgreSQL/SQLAlchemy yapısına uygun filtreleme #}
+        {% set best = players | selectattr('position', 'equalto', pos_name) | sort(attribute='value', reverse=True) | first %}
+        <div class="flex flex-col bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center text-[11px] font-black text-blue-400 border border-blue-500/30">
+                        {{ pos_name[:2].upper() }}
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{{ pos_name }}</p>
+                        <p class="text-sm font-black italic text-white">{{ best.name if best else '---' }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-black text-yellow-500">{{ best.value if best else '0' }} M €</p>
+                </div>
+            </div>
+            {% if is_admin and best %}
+            <div class="mt-2 text-right border-t border-slate-700 pt-2">
+                <a href="/sil/{{ best.id }}?sifre={{ sifre }}" onclick="return confirm('Silinsin mi?')" class="text-[9px] text-red-500 font-black uppercase">Sil</a>
+            </div>
+            {% endif %}
         </div>
-        <div class="player-val">€{{ p.value }}M</div>
-    </a>
-    {% endfor %}
-</div>
+    {% endmacro %}
 
-{% if is_admin %}
-<div class="admin-panel">
-    <h3>Admin - Veri Ekle</h3>
-    <form action="{{ url_for('ekle_hersey') }}" method="POST">
-        <input type="hidden" name="sifre" value="{{ sifre }}">
-        <select name="tip">
-            <option value="kulup">Kulüp Ekle</option>
-            <option value="oyuncu">Oyuncu Ekle</option>
-            <option value="haber">Haber Ekle</option>
-        </select><br><br>
-        <input type="text" name="name" placeholder="Oyuncu Adı / Kulüp Adı / Haber Başlığı"><br>
-        <input type="text" name="img" placeholder="Resim/Logo URL"><br>
-        <input type="text" name="value" placeholder="Değer (Sadece rakam örn: 50)"><br>
-        <input type="text" name="position" placeholder="Mevki"><br>
-        <input type="text" name="kulup_id" placeholder="Kulüp ID (Oyuncu için)"><br>
-        <textarea name="icerik" placeholder="Haber İçeriği"></textarea><br>
-        <button type="submit">Gönder</button>
-    </form>
-</div>
-{% endif %}
+    <div class="bg-red-900 py-2 overflow-hidden border-b border-red-700 shadow-2xl">
+        <div class="whitespace-nowrap animate-marquee font-black uppercase text-[10px] tracking-widest text-red-100">
+            {% for p in players if p.rumors %} ⚡ {{ p.name }}: {{ p.rumors }} &nbsp;&nbsp;&nbsp;&nbsp; {% endfor %}
+            {% if not players %} TRANSFER BORSASI SAKİN... {% endif %}
+        </div>
+    </div>
 
+    <div class="container mx-auto p-4 max-w-5xl">
+        <header class="flex justify-between items-center py-8">
+            <h1 class="text-2xl font-black italic text-blue-500 uppercase tracking-tighter">FUTBOL MARKET</h1>
+            <div class="flex gap-2">
+                <a href="/menu?sifre={{ sifre }}" class="w-12 h-12 flex items-center justify-center bg-slate-800 rounded-2xl text-xl hover:bg-blue-600 transition shadow-lg border border-slate-700 text-white">☰</a>
+                <button onclick="toggleBestList()" class="w-12 h-12 flex items-center justify-center bg-slate-800 rounded-2xl text-2xl hover:bg-blue-600 transition shadow-lg border border-slate-700 text-white">⋮</button>
+            </div>
+        </header>
+
+        <div id="bestListArea" class="hidden-list mb-12">
+            <h2 class="text-center font-black text-blue-400 mb-6 uppercase italic text-sm tracking-widest">🏆 MEVKİLERİN EN PAHALILARI</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-[#161b2a] p-8 rounded-[3rem] border border-blue-900/20 shadow-2xl">
+                {{ render_best(players, 'Kaleci') }}
+                {{ render_best(players, 'Stoper') }}
+                {{ render_best(players, 'Sol Bek') }}
+                {{ render_best(players, 'Sağ Bek') }}
+                {{ render_best(players, 'Defansif Orta Saha') }}
+                {{ render_best(players, 'Merkez Orta Saha') }}
+                {{ render_best(players, 'On Numara') }}
+                {{ render_best(players, 'Sol Kanat') }}
+                {{ render_best(players, 'Sağ Kanat') }}
+                {{ render_best(players, 'Santrafor') }}
+            </div>
+        </div>
+
+        <div class="mb-12 space-y-4">
+            <div class="flex flex-col md:flex-row gap-3">
+                <input type="text" id="src" onkeyup="filterAndSort()" placeholder="Oyuncu veya kulüp ara..." class="flex-1 bg-[#161b2a] border border-slate-800 p-5 rounded-3xl outline-none focus:ring-2 focus:ring-blue-500 shadow-2xl text-white placeholder-slate-500">
+                
+                <select id="sortOrder" onchange="filterAndSort()" class="bg-[#161b2a] border border-slate-800 p-5 rounded-3xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-bold text-blue-400 cursor-pointer">
+                    <option value="desc">En Değerli (Önce)</option>
+                    <option value="asc">En Ucuz (Önce)</option>
+                </select>
+            </div>
+            
+            <div class="flex gap-2 overflow-x-auto no-scrollbar py-2">
+                <button onclick="setPosFilter('all')" class="pos-btn bg-blue-600 px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap">Hepsi</button>
+                <button onclick="setPosFilter('Kaleci')" class="pos-btn bg-slate-800 px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap">Kaleci</button>
+                <button onclick="setPosFilter('Stoper')" class="pos-btn bg-slate-800 px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap">Stoper</button>
+                <button onclick="setPosFilter('Bek')" class="pos-btn bg-slate-800 px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap">Bekler</button>
+                <button onclick="setPosFilter('Orta Saha')" class="pos-btn bg-slate-800 px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap">Orta Saha</button>
+                <button onclick="setPosFilter('Kanat')" class="pos-btn bg-slate-800 px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap">Kanatlar</button>
+                <button onclick="setPosFilter('Santrafor')" class="pos-btn bg-slate-800 px-5 py-2.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap">Santrafor</button>
+            </div>
+        </div>
+
+        {% if is_admin %}
+        <div class="bg-blue-900/10 p-8 rounded-[3rem] border-2 border-blue-600 mb-12 shadow-2xl">
+            <form action="/ekle" method="POST" class="grid grid-cols-2 md:grid-cols-4 gap-4 text-black text-sm font-bold">
+                <input type="hidden" name="sifre" value="{{ sifre }}">
+                <input type="text" name="name" placeholder="İsim" class="p-3 rounded-xl outline-none" required>
+                <input type="text" name="club" placeholder="Kulüp" class="p-3 rounded-xl outline-none">
+                <select name="position" class="p-3 rounded-xl outline-none bg-white">
+                    <option value="Kaleci">Kaleci</option><option value="Stoper">Stoper</option>
+                    <option value="Sağ Bek">Sağ Bek</option><option value="Sol Bek">Sol Bek</option>
+                    <option value="Defansif Orta Saha">Defansif Orta Saha</option>
+                    <option value="Merkez Orta Saha">Merkez Orta Saha</option>
+                    <option value="On Numara">On Numara</option>
+                    <option value="Sağ Kanat">Sağ Kanat</option><option value="Sol Kanat">Sol Kanat</option>
+                    <option value="Santrafor">Santrafor</option>
+                </select>
+                <input type="text" name="value" placeholder="Piyasa Değeri (Örn: 15.5)" class="p-3 rounded-xl outline-none">
+                <input type="text" name="age" placeholder="Yaş" class="p-3 rounded-xl outline-none">
+                <input type="text" name="country" placeholder="Ülke" class="p-3 rounded-xl outline-none">
+                <input type="text" name="rumors" placeholder="Söylenti" class="p-3 rounded-xl col-span-2 border-2 border-red-500 outline-none">
+                <input type="text" name="img" placeholder="Resim URL (Link)" class="p-3 rounded-xl col-span-2 border-2 border-green-500 outline-none">
+                <button type="submit" class="col-span-2 md:col-span-4 bg-blue-600 text-white font-black py-4 rounded-2xl hover:bg-blue-500 transition-all uppercase shadow-xl">OYUNCUYU EKLE</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div id="grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for p in players %}
+            <div class="card bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800 hover:border-blue-500 transition-all shadow-xl group" 
+                 data-info="{{ p.name|lower }} {{ p.club|lower }} {{ p.position|lower }}"
+                 data-pos="{{ p.position }}"
+                 data-val="{{ p.value }}">
+                <a href="/oyuncu/{{ p.id }}?sifre={{ sifre or '' }}">
+                    <div class="h-40 w-full mb-4 flex justify-center items-center bg-[#0b0f1a] rounded-[2rem] relative overflow-hidden">
+                        <img src="{{ p.img }}" class="h-full object-contain group-hover:scale-110 transition duration-500" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166351.png'">
+                        <div class="absolute top-3 right-3 bg-blue-600 text-[8px] px-2 py-1 rounded-full font-black uppercase">{{ p.position }}</div>
+                    </div>
+                    <h3 class="text-sm font-black text-center uppercase truncate text-white">{{ p.name }}</h3>
+                    <p class="text-slate-500 text-center text-[9px] mb-3 uppercase">{{ p.club }} | {{ p.country }}</p>
+                    <div class="bg-blue-600/10 border border-blue-500/20 p-3 rounded-2xl text-center text-blue-400 font-black text-xs italic">€{{ p.value }}M</div>
+                </a>
+                
+                {% if is_admin %}
+                <div class="mt-4 flex justify-center">
+                    <a href="/sil/{{ p.id }}?sifre={{ sifre }}" onclick="return confirm('Silinsin mi?')" class="text-red-500 text-[9px] font-black uppercase">Kaydı Sil</a>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        let currentPos = 'all';
+
+        function toggleBestList() { document.getElementById('bestListArea').classList.toggle('hidden-list'); }
+        
+        function setPosFilter(pos) {
+            currentPos = pos;
+            let btns = document.getElementsByClassName('pos-btn');
+            for (let btn of btns) { btn.classList.replace('bg-blue-600', 'bg-slate-800'); }
+            event.target.classList.replace('bg-slate-800', 'bg-blue-600');
+            filterAndSort();
+        }
+
+        function filterAndSort() {
+            let input = document.getElementById('src').value.toLowerCase();
+            let order = document.getElementById('sortOrder').value;
+            let grid = document.getElementById('grid');
+            let cards = Array.from(grid.getElementsByClassName('card'));
+
+            cards.forEach(card => {
+                let cardPos = card.dataset.pos;
+                let matchesSearch = card.dataset.info.includes(input);
+                let matchesPos = false;
+
+                if (currentPos === 'all') matchesPos = true;
+                else if (currentPos === 'Bek') matchesPos = cardPos.includes('Bek');
+                else if (currentPos === 'Orta Saha') matchesPos = (cardPos.includes('Orta Saha') || cardPos.includes('On Numara'));
+                else if (currentPos === 'Kanat') matchesPos = cardPos.includes('Kanat');
+                else matchesPos = (cardPos === currentPos);
+
+                card.style.display = (matchesSearch && matchesPos) ? "block" : "none";
+            });
+
+            cards.sort((a, b) => {
+                let valA = parseFloat(a.dataset.val) || 0;
+                let valB = parseFloat(b.dataset.val) || 0;
+                return order === 'desc' ? valB - valA : valA - valB;
+            });
+
+            cards.forEach(card => grid.appendChild(card));
+        }
+
+        window.onload = filterAndSort;
+    </script>
 </body>
 </html>
