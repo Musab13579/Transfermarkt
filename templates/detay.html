@@ -84,32 +84,38 @@
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
         });
 
- function guncelle(event) {
+                            
+      function guncelle(event) {
     if(event) event.preventDefault();
-    console.log("Butona basıldı!");
+    
+    // 1. URL'den oyuncu ID'sini güvenli bir şekilde al
+    const urlParts = window.location.pathname.split('/');
+    const currentId = urlParts[urlParts.length - 1];
 
-    try {
-        let players = JSON.parse(localStorage.getItem('players')) || [];
+    // 2. Hafızadaki tüm oyuncuları çek (Tabloyu aç)
+    let players = JSON.parse(localStorage.getItem('players')) || [];
+    
+    // 3. Tabloda bu ID'ye sahip olan oyuncuyu bul
+    let foundIndex = players.findIndex(p => String(p.id) === String(currentId));
+
+    if (foundIndex !== -1) {
+        // 4. Formdaki bilgileri tabloya işle
+        players[foundIndex].name = document.getElementById('editName').value;
+        players[foundIndex].club = document.getElementById('editClub').value;
+        players[foundIndex].position = document.getElementById('editPosition').value;
+        players[foundIndex].marketValue = document.getElementById('editValue').value;
+        players[foundIndex].rumors = document.getElementById('editRumors').value;
+
+        // 5. Tabloyu kaydet
+        localStorage.setItem('players', JSON.stringify(players));
         
-        // playerIndex zaten senin kodunda yukarıda tanımlı (Satır 12 civarı)
-        if (players[playerIndex]) {
-            players[playerIndex].name = document.getElementById('editName').value;
-            players[playerIndex].club = document.getElementById('editClub').value;
-            players[playerIndex].position = document.getElementById('editPosition').value;
-            players[playerIndex].marketValue = document.getElementById('editValue').value;
-            players[playerIndex].rumors = document.getElementById('editRumors').value;
-
-            localStorage.setItem('players', JSON.stringify(players));
-            
-            alert("BAŞARIYLA GÜNCELLENDİ!");
-            location.reload();
-        }
-    } catch (e) {
-        alert("Hata: " + e.message);
+        alert("Tablo Başarıyla Güncellendi!");
+        location.reload();
+    } else {
+        alert("Hata: Oyuncu tabloda bulunamadı! ID: " + currentId);
     }
- }
-                           
-                           
+            }
+            
                            
                            
                            
