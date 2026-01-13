@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Futbol Market | Profesyonel</title>
+    <style>
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .animate-marquee { display: inline-block; animation: marquee 30s linear infinite; }
+    </style>
 </head>
 <body class="bg-[#0b0f1a] text-white font-sans">
     
@@ -15,26 +19,38 @@
 
     <div class="container mx-auto p-4 max-w-5xl">
         <div class="mb-6">
-            <h2 class="text-blue-500 font-bold text-xs uppercase mb-3 italic">⚡ Son Hareketler</h2>
+            <h2 class="text-blue-500 font-bold text-xs uppercase mb-3 italic flex items-center gap-2">
+                <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span> Son Hareketler
+            </h2>
             <div id="latest-news-container" class="grid grid-cols-2 md:grid-cols-5 gap-3">
                 </div>
         </div>
 
-        <header class="py-8"><h1 class="text-2xl font-black italic text-blue-500 uppercase tracking-tighter">FUTBOL MARKET</h1></header>
+        <header class="py-8">
+            <h1 class="text-2xl font-black italic text-blue-500 uppercase tracking-tighter italic">FUTBOL MARKET</h1>
+        </header>
 
-        <div class="mb-8"><input type="text" id="src" onkeyup="filterAndSort()" placeholder="Ara..." class="w-full bg-[#161b2a] border border-slate-800 p-4 rounded-2xl outline-none text-sm"></div>
+        <div class="mb-8">
+            <input type="text" id="src" onkeyup="filterAndSort()" placeholder="Oyuncu veya kulüp ara..." 
+                   class="w-full bg-[#161b2a] border border-slate-800 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+        </div>
 
         <div id="grid" class="grid grid-cols-2 md:grid-cols-4 gap-6">
             {% for p in players %}
-            <div class="card bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800 hover:border-blue-500 transition shadow-xl" 
-                 data-id="{{ p.id }}" data-info="{{ p.name|lower }} {{ p.club|lower }}" data-val="{{ p.value }}">
+            <div class="card bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800 hover:border-blue-500 transition shadow-xl group" 
+                 data-id="{{ p.id }}" 
+                 data-info="{{ p.name|lower }} {{ p.club|lower }}" 
+                 data-val="{{ p.value }}">
                 <a href="/oyuncu/{{ p.id }}?sifre={{ sifre }}">
-                    <div class="h-40 w-full mb-4 bg-[#0b0f1a] rounded-[2rem] flex justify-center items-center">
-                        <img src="{{ p.img }}" class="h-full object-contain">
+                    <div class="h-40 w-full mb-4 bg-[#0b0f1a] rounded-[2rem] flex justify-center items-center overflow-hidden">
+                        <img src="{{ p.img }}" class="h-full object-contain group-hover:scale-110 transition duration-500" 
+                             onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166351.png'">
                     </div>
                     <h3 class="text-sm font-black text-center uppercase truncate">{{ p.name }}</h3>
                     <p class="text-slate-500 text-center text-[9px] uppercase">{{ p.club }}</p>
-                    <div class="bg-blue-600/10 border border-blue-500/20 p-3 rounded-2xl text-center text-blue-400 font-black text-xs mt-3">{{ p.value }} M €</div>
+                    <div class="bg-blue-600/10 border border-blue-500/20 p-3 rounded-2xl text-center text-blue-400 font-black text-xs mt-3 italic">
+                        <span class="val-text">{{ p.value }}</span> M €
+                    </div>
                 </a>
             </div>
             {% endfor %}
@@ -45,22 +61,28 @@
         function syncFromStorage() {
             const players = JSON.parse(localStorage.getItem('players')) || [];
             
-            // Kartları hafızaya göre düzelt
+            // 1. Kartlardaki "None" veya eski verileri hafızadakiyle değiştir
             players.forEach(p => {
                 const card = document.querySelector(`.card[data-id="${p.id}"]`);
                 if (card) {
+                    // İsim, kulüp ve değer yazılarını güncelle
                     card.querySelector('h3').innerText = p.name;
                     card.querySelector('p').innerText = p.club;
-                    card.querySelector('.text-blue-400').innerText = p.marketValue + " M €";
+                    card.querySelector('.val-text').innerText = p.marketValue;
+                    
+                    // Arama verisini (data-info) ve sıralama değerini (data-val) de güncelle ki arama doğru çalışsın
+                    card.dataset.info = (p.name + " " + p.club).toLowerCase();
+                    card.dataset.val = p.marketValue;
                 }
             });
 
-            // Üst transfer bandını yap
+            // 2. Üstteki "Son Hareketler" kutularını oluştur (En son güncellenen 5 oyuncu)
             const container = document.getElementById('latest-news-container');
             if (container && players.length > 0) {
+                // Hafızadaki oyuncuları ters çevirip son 5'i al
                 const latest = [...players].slice(-5).reverse();
                 container.innerHTML = latest.map(p => `
-                    <div class="bg-slate-800/40 p-3 rounded-2xl border border-white/5">
+                    <div class="bg-slate-800/40 p-3 rounded-2xl border border-white/5 hover:border-blue-500/30 transition shadow-lg">
                         <p class="text-[10px] font-black truncate text-white uppercase">${p.name}</p>
                         <p class="text-[8px] text-blue-400 font-bold truncate">➔ ${p.club}</p>
                     </div>
@@ -72,10 +94,25 @@
             let input = document.getElementById('src').value.toLowerCase();
             let grid = document.getElementById('grid');
             let cards = Array.from(grid.getElementsByClassName('card'));
-            cards.forEach(card => card.style.display = card.dataset.info.includes(input) ? "block" : "none");
+            
+            cards.forEach(card => {
+                // Artık syncFromStorage sayesinde card.dataset.info güncel, arama doğru çalışır
+                let info = card.dataset.info;
+                card.style.display = info.includes(input) ? "block" : "none";
+            });
         }
 
-        document.addEventListener('DOMContentLoaded', syncFromStorage);
+        // Sayfa yüklendiğinde hafızadan verileri çek
+        document.addEventListener('DOMContentLoaded', () => {
+            syncFromStorage();
+            filterAndSort(); // Sayfa açılışında arama varsa uygula
+        });
     </script>
+    
+    <footer class="w-full border-t border-white/10 bg-[#050505] py-8 mt-20 text-center">
+        <p class="text-[9px] text-gray-600 uppercase tracking-[5px] opacity-40">
+            &copy; 2026 TRANSFER MERKEZİ • TÜM HAKLARI SAKLIDIR
+        </p>
+    </footer>
 </body>
 </html>
