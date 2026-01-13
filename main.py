@@ -159,29 +159,40 @@ def oyuncu_duzenle(id):
     if request.form.get('sifre') == "futbol123":
         p = Oyuncu.query.get_or_404(id)
         
-        # OTOMATİK TRANSFER GEÇMİŞİ
+        # OTOMATİK TRANSFER GEÇMİŞİ (Bu kısım geçmişi otomatik yazar)
         eski_kulup = p.club
         yeni_kulup = request.form.get('club')
         if eski_kulup != yeni_kulup:
-            bugun = datetime.now().strftime("%d/%m/%Y")
+            import datetime
+            bugun = datetime.datetime.now().strftime("%d/%m/%Y")
             p.history = f"{bugun}: {eski_kulup} -> {yeni_kulup}\n" + (p.history or "")
+            p.club = yeni_kulup
         
-        # VERİLERİ KAYDET
+        # TÜM VERİLERİ KAYDET
         p.name = request.form.get('name')
-        p.club = yeni_kulup
         p.value = float(request.form.get('value', '0').replace(',', '.'))
         p.age = request.form.get('age')
         p.country = request.form.get('country')
         p.position = request.form.get('position')
         p.yan_mevki = request.form.get('yan_mevki')
+        
+        # İSTATİSTİKLER (Hesaplama yapması için bunları almamız şart)
         p.mac = int(request.form.get('mac', 0))
         p.gol = int(request.form.get('gol', 0))
         p.asist = int(request.form.get('asist', 0))
         p.sure = int(request.form.get('sure', 0))
+        
+# 187 ve 188. satırları bu güvenli versiyonla değiştir:
+p.mevki_x = int(request.form.get('mevki_x') or 47)
+p.mevki_y = int(request.form.get('mevki_y') or 25)
+
+
+        
         p.rumors = request.form.get('rumors')
         
         db.session.commit()
     return redirect(url_for('oyuncu_detay', player_id=id, sifre=request.form.get('sifre')))
+    
     
 # --- HABER DÜZENLEME ---
 @app.route('/haber-duzenle/<int:id>', methods=['POST'])
