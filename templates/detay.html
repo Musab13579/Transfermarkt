@@ -88,33 +88,45 @@
       function saveChanges(event) {
     if(event) event.preventDefault();
     
-    // 1. Mevcut oyuncu verisini sayfadan çek (ID'ye güvenme)
-    let players = JSON.parse(localStorage.getItem('players')) || [];
-    
-    // 2. Formdaki yeni bilgileri topla
-    const updatedPlayer = {
-        id: document.getElementById('editId')?.value || Date.now(),
-        name: document.getElementById('editName').value,
-        position: document.getElementById('editPosition').value,
-        marketValue: document.getElementById('editValue').value,
-        club: document.getElementById('editClub').value,
-        rumors: document.getElementById('editRumors').value,
-        image: players[playerIndex]?.image || "" 
-    };
+    // 1. Şifreyi kontrol et
+    const girilenSifre = document.getElementsByName('sifre')[0].value;
+    const dogruSifre = "futbol123";
 
-    // 3. Tabloyu (Hafızayı) güncelle veya yoksa ekle
-    if (players[playerIndex]) {
-        players[playerIndex] = updatedPlayer;
-    } else {
-        players.push(updatedPlayer);
+    if (girilenSifre !== dogruSifre) {
+        alert("Hatalı Şifre! Güncelleme yapılamaz.");
+        return;
     }
 
-    // 4. Kaydet
-    localStorage.setItem('players', JSON.stringify(players));
-    
-    alert("TABLO KURULDU VE GÜNCELLENDİ!");
-    location.reload();
+    // 2. Verileri Kaydet
+    try {
+        let players = JSON.parse(localStorage.getItem('players')) || [];
+        const currentId = document.getElementById('editId').value;
+
+        const updatedData = {
+            id: currentId,
+            name: document.getElementById('editName').value,
+            club: document.getElementById('editClub').value,
+            position: document.getElementById('editPosition').value,
+            marketValue: document.getElementById('editValue').value,
+            rumors: document.getElementById('editRumors').value
+        };
+
+        let foundIndex = players.findIndex(p => String(p.id) === String(currentId));
+        
+        if (foundIndex !== -1) {
+            players[foundIndex] = { ...players[foundIndex], ...updatedData };
+        } else {
+            players.push(updatedData);
+        }
+
+        localStorage.setItem('players', JSON.stringify(players));
+        alert("Şifre Doğrulandı ve Tablo Güncellendi!");
+        location.reload();
+    } catch (err) {
+        alert("Hata oluştu: " + err.message);
+    }
 }
+
 
             
                            
