@@ -84,12 +84,17 @@
         <div class="relative w-full aspect-[4/3] bg-emerald-900/10 rounded-2xl border border-white/5 overflow-hidden">
             <div class="absolute inset-4 border border-white/10"></div>
             <div class="absolute top-1/2 left-4 right-4 h-[1px] bg-white/10"></div>
-            
-            <div class="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_15px_white] animate-pulse" 
+
+            <div class="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_15px_white] animate-pulse z-10" 
      style="top: {{ player.mevki_y or 25 }}%; left: {{ player.mevki_x or 47 }}%;">
-            </div>
-            
-            
+</div>
+
+{% if player.yan_mevki %}
+<div class="absolute w-3 h-3 bg-blue-400 rounded-full border-2 border-white opacity-70 z-10" 
+     style="top: {{ player.yan_mevki_y or 40 }}%; left: {{ player.yan_mevki_x or 60 }}%;">
+     <span class="absolute -top-4 -left-2 text-[8px] text-white font-bold whitespace-nowrap uppercase">{{ player.yan_mevki }}</span>
+</div>
+{% endif %}
             
             <div class="absolute w-3 h-3 bg-blue-500/50 rounded-full" 
                  style="bottom: 50%; left: 40%;"></div>
@@ -153,6 +158,17 @@
         <input type="number" name="mevki_y" value="{{ player.mevki_y or 25 }}" class="w-full p-3 rounded-xl font-bold text-xs text-black" placeholder="0-100">
     </div>
 </div>
+            <div class="col-span-2 grid grid-cols-2 gap-2 mt-2">
+    <div class="relative">
+        <span class="absolute -top-2 left-2 bg-[#161b2a] px-1 text-[8px] text-yellow-500 font-bold uppercase">Yan Mevki X</span>
+        <input type="number" name="yan_mevki_x" value="{{ player.yan_mevki_x or 47 }}" class="w-full p-3 rounded-xl font-bold text-xs text-black" placeholder="0-100">
+    </div>
+    <div class="relative">
+        <span class="absolute -top-2 left-2 bg-[#161b2a] px-1 text-[8px] text-yellow-400 font-bold uppercase">Yan Mevki Y</span>
+        <input type="number" name="yan_mevki_y" value="{{ player.yan_mevki_y or 40 }}" class="w-full p-3 rounded-xl font-bold text-xs text-black" placeholder="0-100">
+    </div>
+            </div>
+            
 <p class="col-span-2 text-[7px] text-slate-500 text-center mb-2 italic">Sol: 0, Sağ: 100 | Üst: 0, Alt: 100</p>
             
             
