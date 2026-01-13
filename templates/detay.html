@@ -84,29 +84,31 @@
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
         });
 
-
-               function saveChanges(event) {
-    if(event) event.preventDefault(); // Sayfanın kendi kendine yenilenmesini durdurur
-
-    const players = JSON.parse(localStorage.getItem('players')) || [];
+function saveChanges(event) {
+    if(event) event.preventDefault();
+    let players = JSON.parse(localStorage.getItem('players')) || [];
     
-    // playerIndex'in bu sayfada tanımlı olduğundan emin olalım
     const updatedPlayer = {
         ...players[playerIndex],
         name: document.getElementById('editName').value,
         position: document.getElementById('editPosition').value,
         marketValue: document.getElementById('editValue').value,
-        club: document.getElementById('editClub').value, // İşte burası kulübü günceller
-        rumors: document.getElementById('editRumors').value, // Söylentileri günceller
-        image: document.getElementById('editImage') ? document.getElementById('editImage').value : players[playerIndex].image
-            
+        club: document.getElementById('editClub').value,
+        rumors: document.getElementById('editRumors').value,
+        image: players[playerIndex].image 
+    };
 
     players[playerIndex] = updatedPlayer;
     localStorage.setItem('players', JSON.stringify(players));
+    
+    // Beyaz noktadaki yazıyı anlık güncelle
+    const badge = document.getElementById('playerPositionBadge');
+    if(badge) badge.innerText = updatedPlayer.position;
 
-    alert("Bilgiler başarıyla güncellendi!");
-    location.reload(); // Sayfayı yenileyerek veriyi ekrana basar
-               }
+    alert("Kayıt Başarılı!");
+    location.reload();
+}
+                           
                            
                            
     </script>
@@ -119,9 +121,7 @@
 
 <div class="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_15px_white] animate-pulse z-10" 
      style="top: {{ player.mevki_y or 25 }}%; left: {{ player.mevki_x or 47 }}%;">
-     <span class="absolute -top-4 -left-2 text-[7px] text-white font-bold uppercase whitespace-nowrap bg-black/60 px-1 rounded">
-         {{ player.position }}
-     </span>
+     <span id="playerPositionBadge" class="absolute ..."> {{ player.position }} </span>
 </div>
             
 
@@ -174,8 +174,20 @@
             <input type="text" name="age" id="editAge" value="{{ player.age }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Yaş">
             <input type="text" name="club" id="editClub" value="{{ player.club }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Kulüp">
             <input type="text" name="country" id="editCountry" value="{{ player.country }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Ülke">
-            <input type="text" name="position" id="editPosition value="{{ player.position }}" class="p-3 rounded-xl font-bold text-xs col-span-2" placeholder="Mevki">
-
+<label class="text-[10px] text-gray-500 font-bold uppercase">Mevki</label>
+<select id="editPosition" class="col-span-2 bg-gray-800 text-white p-3 rounded-xl border border-white/10 outline-none w-full">
+    <option value="Kaleci">Kaleci</option>
+    <option value="Stoper">Stoper</option>
+    <option value="Sağ Bek">Sağ Bek</option>
+    <option value="Sol Bek">Sol Bek</option>
+    <option value="Merkez Orta Saha">Merkez Orta Saha</option>
+    <option value="On Numara">On Numara</option>
+    <option value="Sağ Kanat">Sağ Kanat</option>
+    <option value="Sol Kanat">Sol Kanat</option>
+    <option value="Forvet">Forvet</option>
+</select>
+            
+            
 <input type="text" name="yan_mevki" value="{{ player.yan_mevki }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Yan Mevki">
 <input type="number" name="mac" value="{{ player.mac }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Maç Sayısı">
 <input type="number" name="gol" value="{{ player.gol }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Gol">
@@ -209,9 +221,11 @@
             <textarea name="history" id="editHistory" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Transfer Geçmişi">{{ player.history }}</textarea>
             <textarea name="rumors" id="editRumors" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Söylentiler">{{ player.rumors }}</textarea>
             
-            <button type="button" onclick="saveChanges(event)" class="col-span-2 bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs">
+         <button type="button" onclick="saveChanges(event)" class="col-span-2 w-full bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs mt-4 mb-4">
     BİLGİLERİ GÜNCELLE
-            </button>
+         </button>
+            
+            
             
         </form>
 
