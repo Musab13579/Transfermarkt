@@ -84,26 +84,29 @@
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
         });
 
-function saveChanges() {
-    const players = JSON.parse(localStorage.getItem('players'));
+
+               function saveChanges(event) {
+    if(event) event.preventDefault(); // Sayfanın kendi kendine yenilenmesini durdurur
+
+    const players = JSON.parse(localStorage.getItem('players')) || [];
     
-    // playerIndex değişkeninin bu sayfada tanımlı olduğundan emin ol
+    // playerIndex'in bu sayfada tanımlı olduğundan emin olalım
     const updatedPlayer = {
         ...players[playerIndex],
         name: document.getElementById('editName').value,
         position: document.getElementById('editPosition').value,
         marketValue: document.getElementById('editValue').value,
         club: document.getElementById('editClub').value, // İşte burası kulübü günceller
-        image: document.getElementById('editImage').value
-    };
+        rumors: document.getElementById('editRumors').value, // Söylentileri günceller
+        image: document.getElementById('editImage') ? document.getElementById('editImage').value : players[playerIndex].image
+           
 
     players[playerIndex] = updatedPlayer;
     localStorage.setItem('players', JSON.stringify(players));
-    
-    loadPlayerDetails(); 
-    closeEditModal();
+
     alert("Bilgiler başarıyla güncellendi!");
-}
+    location.reload(); // Sayfayı yenileyerek veriyi ekrana basar
+               }
                            
                            
     </script>
@@ -206,9 +209,9 @@ function saveChanges() {
             <textarea name="history" id="editHistory" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Transfer Geçmişi">{{ player.history }}</textarea>
             <textarea name="rumors" id="editRumors" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Söylentiler">{{ player.rumors }}</textarea>
             
-            <button type="submit" class="col-span-2 bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs shadow-lg">
-                BİLGİLERİ GÜNCELLE
-            </button>
+            <button type="button" onclick="saveChanges(event)" class="col-span-2 bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs">
+    BİLGİLERİ GÜNCELLE
+</button>
         </form>
 
         <div class="mt-8 pt-6 border-t border-slate-800 text-center">
