@@ -35,7 +35,15 @@
             {% for p in players if p.rumors %} ⚡ {{ p.name }}: {{ p.rumors }} &nbsp;&nbsp;&nbsp;&nbsp; {% endfor %}
         </div>
     </div>
-
+    <div class="flex items-center gap-2 mb-3">
+    <span class="relative flex h-2 w-2">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+    </span>
+    <h2 class="text-blue-500 font-bold text-xs uppercase tracking-tighter">Son Transferler</h2>
+    </div>
+</div>
+    
     <div class="container mx-auto p-4 max-w-5xl">
         <header class="flex justify-between items-center py-8">
             <h1 class="text-2xl font-black italic text-blue-500 uppercase tracking-tighter italic">FUTBOL MARKET</h1>
@@ -173,6 +181,37 @@
     </div>
 
     <script>
+        function updateTransferNews() {
+    // 1. Oyuncu verilerini hafızadan çek
+    const players = JSON.parse(localStorage.getItem('players')) || [];
+    
+    // 2. Son eklenen 5 oyuncuyu al ve en yeniyi başa koy
+    const latestFive = players.slice(-5).reverse();
+    const container = document.getElementById('latest-news-container');
+
+    // 3. Eğer veri yoksa boş bırakma, bilgi ver
+    if (!container) return; 
+    if (latestFive.length === 0) {
+        container.innerHTML = '<div class="text-gray-500 text-[10px] col-span-5 text-center">Transferler yükleniyor...</div>';
+        return;
+    }
+
+    // 4. Kutucukları oluştur ve HTML içine bas
+    container.innerHTML = latestFive.map(player => `
+        <div class="bg-black/40 p-2 rounded border border-white/5 hover:border-blue-500/50 transition-all overflow-hidden">
+            <div class="font-bold text-[10px] truncate text-white uppercase">${player.name}</div>
+            <div class="text-blue-400 text-[9px] font-semibold mt-0.5 truncate">➡️ ${player.club}</div>
+        </div>
+    `).join('');
+}
+
+// Sayfa yüklendiğinde hem filtrelemeyi hem de haber bandını çalıştır
+const originalOnload = window.onload;
+window.onload = function() {
+    if (originalOnload) originalOnload();
+    updateTransferNews(); // Haber bandını doldurur
+};
+        
         function toggleBestList() { document.getElementById('bestListArea').classList.toggle('hidden-list'); }
         function filterAndSort() {
             let input = document.getElementById('src').value.toLowerCase();
