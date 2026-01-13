@@ -85,36 +85,37 @@
         });
 
                             
-      function guncelle(event) {
+      function saveChanges(event) {
     if(event) event.preventDefault();
     
-    // 1. URL'den oyuncu ID'sini güvenli bir şekilde al
-    const urlParts = window.location.pathname.split('/');
-    const currentId = urlParts[urlParts.length - 1];
-
-    // 2. Hafızadaki tüm oyuncuları çek (Tabloyu aç)
+    // 1. Mevcut oyuncu verisini sayfadan çek (ID'ye güvenme)
     let players = JSON.parse(localStorage.getItem('players')) || [];
     
-    // 3. Tabloda bu ID'ye sahip olan oyuncuyu bul
-    let foundIndex = players.findIndex(p => String(p.id) === String(currentId));
+    // 2. Formdaki yeni bilgileri topla
+    const updatedPlayer = {
+        id: document.getElementById('editId')?.value || Date.now(),
+        name: document.getElementById('editName').value,
+        position: document.getElementById('editPosition').value,
+        marketValue: document.getElementById('editValue').value,
+        club: document.getElementById('editClub').value,
+        rumors: document.getElementById('editRumors').value,
+        image: players[playerIndex]?.image || "" 
+    };
 
-    if (foundIndex !== -1) {
-        // 4. Formdaki bilgileri tabloya işle
-        players[foundIndex].name = document.getElementById('editName').value;
-        players[foundIndex].club = document.getElementById('editClub').value;
-        players[foundIndex].position = document.getElementById('editPosition').value;
-        players[foundIndex].marketValue = document.getElementById('editValue').value;
-        players[foundIndex].rumors = document.getElementById('editRumors').value;
-
-        // 5. Tabloyu kaydet
-        localStorage.setItem('players', JSON.stringify(players));
-        
-        alert("Tablo Başarıyla Güncellendi!");
-        location.reload();
+    // 3. Tabloyu (Hafızayı) güncelle veya yoksa ekle
+    if (players[playerIndex]) {
+        players[playerIndex] = updatedPlayer;
     } else {
-        alert("Hata: Oyuncu tabloda bulunamadı! ID: " + currentId);
+        players.push(updatedPlayer);
     }
-            }
+
+    // 4. Kaydet
+    localStorage.setItem('players', JSON.stringify(players));
+    
+    alert("TABLO KURULDU VE GÜNCELLENDİ!");
+    location.reload();
+}
+
             
                            
                            
@@ -179,7 +180,7 @@
         
         <form action="/oyuncu-guncelle/{{ player.id }}" method="POST" class="grid grid-cols-2 gap-3 text-black">
             <input type="hidden" name="sifre" value="{{ sifre }}">
-            
+            <input type="hidden" id="editId" value="{{ player.id }}">
             <input type="text" name="name" id="editName" value="{{ player.name }}" class="col-span-2 p-3 rounded-xl font-bold text-xs" placeholder="Oyuncu Adı">
             <input type="text" name="value" id="editValue" value="{{ player.value }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Değer (M€)">
             <input type="text" name="age" id="editAge" value="{{ player.age }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Yaş">
@@ -232,9 +233,9 @@
             <textarea name="history" id="editHistory" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Transfer Geçmişi">{{ player.history }}</textarea>
             <textarea name="rumors" id="editRumors" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Söylentiler">{{ player.rumors }}</textarea>
             
-         <button type="button" onclick="guncelle(event)" class="col-span-2 w-full bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs mt-4">
+         <button type="button" onclick="saveChanges(event)" class="col-span-2 w-full bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs mt-4">
     BİLGİLERİ GÜNCELLE
-         </button>
+</button>
         </form>
 
         <div class="mt-8 pt-6 border-t border-slate-800 text-center">
