@@ -84,30 +84,41 @@
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
         });
 
-function saveChanges(event) {
+    function saveChanges(event) {
     if(event) event.preventDefault();
-    let players = JSON.parse(localStorage.getItem('players')) || [];
     
+    // URL'den oyuncu ID'sini al (playerIndex yerine en güvenli yol budur)
+    const pathArray = window.location.pathname.split('/');
+    const pId = pathArray[pathArray.length - 1];
+
+    let players = JSON.parse(localStorage.getItem('players')) || [];
+    let pIdx = players.findIndex(p => p.id == pId);
+
+    if (pIdx === -1) {
+        alert("Oyuncu bulunamadı!");
+        return;
+    }
+
     const updatedPlayer = {
-        ...players[playerIndex],
+        ...players[pIdx],
         name: document.getElementById('editName').value,
         position: document.getElementById('editPosition').value,
         marketValue: document.getElementById('editValue').value,
         club: document.getElementById('editClub').value,
         rumors: document.getElementById('editRumors').value,
-        image: players[playerIndex].image 
+        image: players[pIdx].image 
     };
 
-    players[playerIndex] = updatedPlayer;
+    players[pIdx] = updatedPlayer;
     localStorage.setItem('players', JSON.stringify(players));
     
-    // Beyaz noktadaki yazıyı anlık güncelle
+    // Beyaz noktayı güncelle
     const badge = document.getElementById('playerPositionBadge');
     if(badge) badge.innerText = updatedPlayer.position;
 
-    alert("Kayıt Başarılı!");
+    alert("Bilgiler Başarıyla Güncellendi!");
     location.reload();
-}
+                           }
                            
                            
                            
@@ -121,7 +132,9 @@ function saveChanges(event) {
 
 <div class="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_15px_white] animate-pulse z-10" 
      style="top: {{ player.mevki_y or 25 }}%; left: {{ player.mevki_x or 47 }}%;">
-     <span id="playerPositionBadge" class="absolute ..."> {{ player.position }} </span>
+     <span id="playerPositionBadge" class="absolute -top-4 -left-2 text-[7px] text-white font-bold uppercase whitespace-nowrap bg-black/60 px-1 rounded">
+    {{ player.position }}
+     </span>
 </div>
             
 
