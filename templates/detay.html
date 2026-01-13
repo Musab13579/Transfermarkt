@@ -86,7 +86,10 @@
             <div class="absolute top-1/2 left-4 right-4 h-[1px] bg-white/10"></div>
             
             <div class="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_15px_white] animate-pulse" 
-                 style="bottom: 25%; left: 47%;"></div>
+     style="bottom: {% if 'Forvet' in player.position %}15%{% elif 'Orta Saha' in player.position %}45%{% elif 'Bek' in player.position %}70%{% else %}85%{% endif %}; 
+            left: {% if 'Sol' in player.position %}20%{% elif 'Sağ' in player.position %}75%{% else %}47%{% endif %};">
+            </div>
+            
             
             <div class="absolute w-3 h-3 bg-blue-500/50 rounded-full" 
                  style="bottom: 50%; left: 40%;"></div>
