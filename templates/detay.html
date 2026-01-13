@@ -84,41 +84,33 @@
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
         });
 
-    function saveChanges(event) {
+   function saveChanges(event) {
     if(event) event.preventDefault();
-    
-    // URL'den oyuncu ID'sini al (playerIndex yerine en güvenli yol budur)
-    const pathArray = window.location.pathname.split('/');
-    const pId = pathArray[pathArray.length - 1];
 
+    // 1. Tablodaki (Hafızadaki) tüm oyuncuları çek
     let players = JSON.parse(localStorage.getItem('players')) || [];
-    let pIdx = players.findIndex(p => p.id == pId);
-
-    if (pIdx === -1) {
-        alert("Oyuncu bulunamadı!");
-        return;
-    }
-
+    
+    // 2. Şu an hangi oyuncuya bakıyorsak onun verilerini kutulardan al
+    // Not: playerIndex senin sayfanda zaten tanımlı olan 'sıra' numarasıdır
     const updatedPlayer = {
-        ...players[pIdx],
+        ...players[playerIndex],
         name: document.getElementById('editName').value,
         position: document.getElementById('editPosition').value,
         marketValue: document.getElementById('editValue').value,
         club: document.getElementById('editClub').value,
-        rumors: document.getElementById('editRumors').value,
-        image: players[pIdx].image 
+        rumors: document.getElementById('editRumors').value
     };
 
-    players[pIdx] = updatedPlayer;
+    // 3. Tablodaki eski verinin üstüne yenisini yaz
+    players[playerIndex] = updatedPlayer;
+
+    // 4. Tabloyu (Hafızayı) güncelle
     localStorage.setItem('players', JSON.stringify(players));
     
-    // Beyaz noktayı güncelle
-    const badge = document.getElementById('playerPositionBadge');
-    if(badge) badge.innerText = updatedPlayer.position;
-
-    alert("Bilgiler Başarıyla Güncellendi!");
-    location.reload();
-                           }
+    alert("Bilgiler Tabloya İşlendi!");
+    location.reload(); 
+   }
+                           
                            
                            
                            
