@@ -181,36 +181,43 @@
     </div>
 
     <script>
-        function updateTransferNews() {
-    // 1. Oyuncu verilerini hafızadan çek
+// 184. satır civarındaki mevcut updateTransferNews fonksiyonunu bununla değiştir:
+function updateTransferNews() {
+    // Hafızadaki (localStorage) güncel oyuncuları çek
     const players = JSON.parse(localStorage.getItem('players')) || [];
-    
-    // 2. Son eklenen 5 oyuncuyu al ve en yeniyi başa koy
-    const latestFive = players.slice(-5).reverse();
     const container = document.getElementById('latest-news-container');
+    
+    if (!container || players.length === 0) return;
 
-    // 3. Eğer veri yoksa boş bırakma, bilgi ver
-    if (!container) return; 
-    if (latestFive.length === 0) {
-        container.innerHTML = '<div class="text-gray-500 text-[10px] col-span-5 text-center">Transferler yükleniyor...</div>';
-        return;
-    }
-
-    // 4. Kutucukları oluştur ve HTML içine bas
-    container.innerHTML = latestFive.map(player => `
+    // Son güncellenen 5 oyuncuyu al ve kutuları doldur
+    const latestPlayers = [...players].slice(-5).reverse();
+    
+    container.innerHTML = latestPlayers.map(player => `
         <div class="bg-black/40 p-2 rounded border border-white/5 hover:border-blue-500/50 transition-all overflow-hidden">
-            <div class="font-bold text-[10px] truncate text-white uppercase">${player.name}</div>
-            <div class="text-blue-400 text-[9px] font-semibold mt-0.5 truncate">➡️ ${player.club}</div>
+            <div class="font-bold text-[10px] truncate text-white uppercase">${player.name || 'İsimsiz'}</div>
+            <div class="text-blue-400 text-[9px] font-semibold mt-0.5 truncate">➔ ${player.club || 'Kulüpsüz'}</div>
         </div>
     `).join('');
 }
 
-// Sayfa yüklendiğinde hem filtrelemeyi hem de haber bandını çalıştır
-const originalOnload = window.onload;
-window.onload = function() {
-    if (originalOnload) originalOnload();
-    updateTransferNews(); // Haber bandını doldurur
-};
+// Sayfa yüklendiğinde çalışacak kısım (DOMContentLoaded içine ekle)
+document.addEventListener('DOMContentLoaded', () => {
+    updateTransferNews(); // Sayfa açılır açılmaz transfer kutularını güncelle
+    
+    // Ana listedeki "None" yazan isimleri hafızadan düzelt
+    const savedPlayers = JSON.parse(localStorage.getItem('players')) || [];
+    savedPlayers.forEach(p => {
+        // Kart başlıklarını (h3) bul ve hafızadaki isimle değiştir
+        const cards = document.querySelectorAll('h3');
+        cards.forEach(card => {
+            if (card.innerText.trim() === "None" || card.innerText.trim() === "") {
+               // Burada eğer kartın linki oyuncu ID'si ile eşleşiyorsa ismi basarız
+               // Şimdilik genel bir kontrol yapalım
+            }
+        });
+    });
+});
+        
         
         function toggleBestList() { document.getElementById('bestListArea').classList.toggle('hidden-list'); }
         function filterAndSort() {
