@@ -159,9 +159,10 @@ def haber_sil(id):
             db.session.commit()
     return redirect(url_for('home', sifre=request.args.get('sifre')))
 
-   @app.route('/oyuncu-guncelle/<int:id>', methods=['POST'])
+@app.route('/oyuncu-guncelle/<int:id>', methods=['POST'])
 def oyuncu_duzenle(id):
-    if request.form.get('sifre') == "futbol123":
+    sifre = request.form.get('sifre')
+    if sifre == "futbol123":
         p = Oyuncu.query.get_or_404(id)
         
         # Transfer Geçmişi Kontrolü
@@ -171,32 +172,32 @@ def oyuncu_duzenle(id):
             bugun = datetime.now().strftime("%d/%m/%Y")
             p.history = f"{bugun}: {p.club} -> {yeni_kulup}\n" + (p.history or "")
             p.club = yeni_kulup
-        
-        # Temel Bilgileri Güncelle
+            
+        # Bilgileri Güncelle
         p.name = request.form.get('name')
         p.age = request.form.get('age')
         p.country = request.form.get('country')
         p.position = request.form.get('position')
         p.yan_mevki = request.form.get('yan_mevki')
         
-        # Sayısal Veriler ve Koordinatlar
         try:
             p.mac = int(request.form.get('mac') or 0)
             p.gol = int(request.form.get('gol') or 0)
             p.asist = int(request.form.get('asist') or 0)
             p.sure = int(request.form.get('sure') or 0)
+            # Koordinatları Kaydet
             p.mevki_x = int(request.form.get('mevki_x') or 47)
             p.mevki_y = int(request.form.get('mevki_y') or 25)
             p.yan_mevki_x = int(request.form.get('yan_mevki_x') or 47)
             p.yan_mevki_y = int(request.form.get('yan_mevki_y') or 40)
         except:
             pass
-
+            
         p.rumors = request.form.get('rumors', '')
         db.session.commit()
     
-    # return satırı fonksiyonun en başında, if bloğunun dışında olmalı
-    return redirect(url_for('oyuncu_detay', player_id=id, sifre=request.form.get('sifre')))
+    # return satırı en başta (solda) olmalı
+    return redirect(url_for('oyuncu_detay', player_id=id, sifre=sifre))
     
     
 # --- HABER DÜZENLEME ---
