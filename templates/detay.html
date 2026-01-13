@@ -84,31 +84,31 @@
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
         });
 
-  function saveChanges(event) {
+ function guncelle(event) {
     if(event) event.preventDefault();
+    console.log("Butona basıldı!");
 
-    // 1. Hafızadaki tüm oyuncuları çek (Tabloyu aç)
-    let players = JSON.parse(localStorage.getItem('players')) || [];
-    
-    // 2. playerIndex sayfada zaten tanımlı, onu kullanıyoruz (Satırı bul)
-    if (typeof playerIndex !== 'undefined' && players[playerIndex]) {
+    try {
+        let players = JSON.parse(localStorage.getItem('players')) || [];
         
-        // 3. Formdaki verileri al ve o satıra yaz
-        players[playerIndex].name = document.getElementById('editName').value;
-        players[playerIndex].club = document.getElementById('editClub').value;
-        players[playerIndex].position = document.getElementById('editPosition').value;
-        players[playerIndex].marketValue = document.getElementById('editValue').value;
-        players[playerIndex].rumors = document.getElementById('editRumors').value;
+        // playerIndex zaten senin kodunda yukarıda tanımlı (Satır 12 civarı)
+        if (players[playerIndex]) {
+            players[playerIndex].name = document.getElementById('editName').value;
+            players[playerIndex].club = document.getElementById('editClub').value;
+            players[playerIndex].position = document.getElementById('editPosition').value;
+            players[playerIndex].marketValue = document.getElementById('editValue').value;
+            players[playerIndex].rumors = document.getElementById('editRumors').value;
 
-        // 4. Tabloyu kapat ve kaydet
-        localStorage.setItem('players', JSON.stringify(players));
-        
-        alert("Tablo başarıyla güncellendi!");
-        location.reload();
-    } else {
-        alert("Hata: Oyuncu sırası belirlenemedi!");
+            localStorage.setItem('players', JSON.stringify(players));
+            
+            alert("BAŞARIYLA GÜNCELLENDİ!");
+            location.reload();
+        }
+    } catch (e) {
+        alert("Hata: " + e.message);
     }
-  }
+ }
+                           
                            
                            
                            
@@ -226,13 +226,9 @@
             <textarea name="history" id="editHistory" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Transfer Geçmişi">{{ player.history }}</textarea>
             <textarea name="rumors" id="editRumors" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Söylentiler">{{ player.rumors }}</textarea>
             
-         <button type="button" onclick="tabloGuncelle(event)" class="col-span-2 w-full bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs mt-4">
+         <button type="button" onclick="guncelle(event)" class="col-span-2 w-full bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs mt-4">
     BİLGİLERİ GÜNCELLE
-</button>
-
-            
-            
-            
+         </button>
         </form>
 
         <div class="mt-8 pt-6 border-t border-slate-800 text-center">
