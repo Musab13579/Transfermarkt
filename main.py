@@ -154,42 +154,32 @@ def haber_sil(id):
     return redirect(url_for('home', sifre=request.args.get('sifre')))
 
 # --- OYUNCU DÜZENLEME ---
-@app.route('/oyuncu-duzenle/<int:id>', methods=['POST'])
+@app.route('/oyuncu-guncelle/<int:id>', methods=['POST'])
 def oyuncu_duzenle(id):
     if request.form.get('sifre') == "futbol123":
         p = Oyuncu.query.get_or_404(id)
-        p.name = request.form.get('name')
-        p.club = request.form.get('club')
-        p.position = request.form.get('position')
-        p.age = request.form.get('age')
-        p.country = request.form.get('country')
-        p.history = request.form.get('history')
-        p.rumors = request.form.get('rumors')
-              # --- OTOMATİK TRANSFER KAYDI ---
+        
+        # OTOMATİK TRANSFER GEÇMİŞİ
         eski_kulup = p.club
         yeni_kulup = request.form.get('club')
         if eski_kulup != yeni_kulup:
             bugun = datetime.now().strftime("%d/%m/%Y")
             p.history = f"{bugun}: {eski_kulup} -> {yeni_kulup}\n" + (p.history or "")
-
-        # --- YENİ BİLGİLER ---
+        
+        # VERİLERİ KAYDET
+        p.name = request.form.get('name')
         p.club = yeni_kulup
+        p.value = float(request.form.get('value', '0').replace(',', '.'))
+        p.age = request.form.get('age')
+        p.country = request.form.get('country')
+        p.position = request.form.get('position')
         p.yan_mevki = request.form.get('yan_mevki')
         p.mac = int(request.form.get('mac', 0))
         p.gol = int(request.form.get('gol', 0))
         p.asist = int(request.form.get('asist', 0))
         p.sure = int(request.form.get('sure', 0))
+        p.rumors = request.form.get('rumors')
         
-        yeni_deger = float(request.form.get('value', '0').replace(',', '.'))
-        if yeni_deger != p.value:
-            p.value = yeni_deger
-            bugun = datetime.now().strftime("%d/%m")
-            v_hist = list(p.value_history)
-            d_hist = list(p.date_history)
-            v_hist.append(yeni_deger)
-            d_hist.append(bugun)
-            p.value_history = v_hist
-            p.date_history = d_hist
         db.session.commit()
     return redirect(url_for('oyuncu_detay', player_id=id, sifre=request.form.get('sifre')))
     
