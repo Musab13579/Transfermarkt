@@ -28,7 +28,13 @@ class Oyuncu(db.Model):
     history = db.Column(db.Text)
     value_history = db.Column(db.JSON, default=list)
     date_history = db.Column(db.JSON, default=list)
-
+    # Mevcut sütunların altına ekle
+    yan_mevki = db.Column(db.String(50))
+    mac = db.Column(db.Integer, default=0)
+    gol = db.Column(db.Integer, default=0)
+    asist = db.Column(db.Integer, default=0)
+    sure = db.Column(db.Integer, default=0)
+    
 class Haber(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     baslik = db.Column(db.String(200))
@@ -159,6 +165,20 @@ def oyuncu_duzenle(id):
         p.country = request.form.get('country')
         p.history = request.form.get('history')
         p.rumors = request.form.get('rumors')
+              # --- OTOMATİK TRANSFER KAYDI ---
+        eski_kulup = p.club
+        yeni_kulup = request.form.get('club')
+        if eski_kulup != yeni_kulup:
+            bugun = datetime.now().strftime("%d/%m/%Y")
+            p.history = f"{bugun}: {eski_kulup} -> {yeni_kulup}\n" + (p.history or "")
+
+        # --- YENİ BİLGİLER ---
+        p.club = yeni_kulup
+        p.yan_mevki = request.form.get('yan_mevki')
+        p.mac = int(request.form.get('mac', 0))
+        p.gol = int(request.form.get('gol', 0))
+        p.asist = int(request.form.get('asist', 0))
+        p.sure = int(request.form.get('sure', 0))
         
         yeni_deger = float(request.form.get('value', '0').replace(',', '.'))
         if yeni_deger != p.value:
