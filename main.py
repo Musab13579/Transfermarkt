@@ -35,6 +35,12 @@ class Oyuncu(db.Model):
     asist = db.Column(db.Integer, default=0)
     sure = db.Column(db.Integer, default=0)
     
+    # 36. satırdan itibaren ekle:
+    mevki_x = db.Column(db.Integer, default=47)
+    mevki_y = db.Column(db.Integer, default=25)
+    yan_mevki_x = db.Column(db.Integer, default=47)
+    yan_mevki_y = db.Column(db.Integer, default=40)
+    
 class Haber(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     baslik = db.Column(db.String(200))
@@ -156,7 +162,7 @@ def haber_sil(id):
 # --- OYUNCU DÜZENLEME ---
 @app.route('/oyuncu-guncelle/<int:id>', methods=['POST'])
 def oyuncu_duzenle(id):
-    if request.form.get('sifre') == "futbol123":
+        if request.form.get('sifre') == "futbol123":
         p = Oyuncu.query.get_or_404(id)
         
         # OTOMATİK TRANSFER GEÇMİŞİ
@@ -164,37 +170,34 @@ def oyuncu_duzenle(id):
         if p.club != yeni_kulup:
             from datetime import datetime
             bugun = datetime.now().strftime("%d/%m/%Y")
-            # Transfer geçmişini en üste ekler
             p.history = f"{bugun}: {p.club} -> {yeni_kulup}\n" + (p.history or "")
             p.club = yeni_kulup
         
-        # DİĞER BİLGİLER
+        # VERİLERİ KAYDET
         p.name = request.form.get('name')
         p.age = request.form.get('age')
         p.country = request.form.get('country')
         p.position = request.form.get('position')
         p.yan_mevki = request.form.get('yan_mevki')
         
-        # SAYISAL VERİLER VE KOORDİNATLAR
         try:
             p.mac = int(request.form.get('mac') or 0)
             p.gol = int(request.form.get('gol') or 0)
             p.asist = int(request.form.get('asist') or 0)
             p.sure = int(request.form.get('sure') or 0)
             
-            # Ana Mevki Koordinatları
+            # Koordinatlar
             p.mevki_x = int(request.form.get('mevki_x') or 47)
             p.mevki_y = int(request.form.get('mevki_y') or 25)
-            
-            # Yan Mevki Koordinatları (Yeni ekledik)
             p.yan_mevki_x = int(request.form.get('yan_mevki_x') or 47)
-            p.yan_mevki_y = int(request.form.get('yan_mevki_y') or 25)
+            p.yan_mevki_y = int(request.form.get('yan_mevki_y') or 40)
         except:
             pass
 
-        p.rumors = request.form.get('rumors') # İstersen burayı kulüp için de kullanabilirsin
+        p.rumors = request.form.get('rumors', '')
         db.session.commit()
     return redirect(url_for('oyuncu_detay', player_id=id, sifre=request.form.get('sifre')))
+
     
     
     
