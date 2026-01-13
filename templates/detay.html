@@ -46,10 +46,13 @@
             </div>
         </div>
         <div class="mt-6 border-t border-slate-800/50 pt-4">
-            <p class="text-[8px] text-slate-500 font-bold uppercase mb-2 italic">Kariyer / Transfer Geçmişi</p>
-            <p class="text-[11px] text-slate-300 leading-relaxed italic">
-                {{ player.history if player.history else 'Kariyer bilgisi henüz girilmemiş.' }}
-            </p>
+            <div class="mt-6 border-t border-slate-800/50 pt-4">
+    <p class="text-[8px] text-slate-500 font-bold uppercase mb-2 italic">Kariyer / Transfer Geçmişi</p>
+    <div class="text-[11px] text-slate-300 leading-relaxed italic whitespace-pre-line">
+        {{ player.history if player.history else 'Kariyer bilgisi henüz girilmemiş.' }}
+    </div>
+            </div>
+            
         </div>
     </div>
 
