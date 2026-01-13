@@ -165,13 +165,23 @@ def oyuncu_duzenle(id):
     if sifre == "futbol123":
         p = Oyuncu.query.get_or_404(id)
         
-        # Transfer Geçmişi Kontrolü
+               # OTOMATİK TRANSFER GEÇMİŞİ KONTROLÜ
         yeni_kulup = request.form.get('club')
+        
+        # Eğer veritabanındaki kulüp (p.club) formdan gelenden farklıysa geçmişe yaz
         if p.club != yeni_kulup:
             from datetime import datetime
             bugun = datetime.now().strftime("%d/%m/%Y")
-            p.history = f"{bugun}: {p.club} -> {yeni_kulup}\n" + (p.history or "")
+            yeni_gecmis_satiri = f"{bugun}: {p.club} -> {yeni_kulup}"
+            
+            if p.history:
+                p.history = yeni_gecmis_satiri + "\n" + p.history
+            else:
+                p.history = yeni_gecmis_satiri
+            
+            # Kontrol bittikten sonra yeni kulübü ata
             p.club = yeni_kulup
+            
             
         # Bilgileri Güncelle
         p.name = request.form.get('name')
