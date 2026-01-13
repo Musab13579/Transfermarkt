@@ -8,6 +8,37 @@
 </head>
 <body class="bg-[#0b0f1a] text-white p-4">
     <div class="max-w-4xl mx-auto">
+        <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Hafızadaki tabloyu çek
+    let players = JSON.parse(localStorage.getItem('players')) || [];
+    const currentId = "{{ player.id }}";
+    
+    // 2. Bu oyuncunun hafızada güncel kaydı var mı bak
+    const updatedPlayer = players.find(p => String(p.id) === String(currentId));
+
+    if (updatedPlayer) {
+        // 3. Varsa, sayfadaki eski bilgileri hafızadakilerle değiştir
+        // İsim Güncelleme
+        const nameHeader = document.querySelector('h1.font-black');
+        if(nameHeader) nameHeader.innerText = updatedPlayer.name;
+
+        // 26. satırı tam olarak böyle yap (Noktalara dikkat):
+const valueBadge = document.querySelector('.bg-blue-600.text-white.text-2xl');
+        
+        // Kulüp ve Mevki Güncelleme
+        const clubInfo = document.querySelector('p.text-blue-400');
+        if(clubInfo) clubInfo.innerText = updatedPlayer.club + " | " + updatedPlayer.position;
+        
+        // Söylentileri Güncelleme
+        const rumorBox = document.querySelector('.bg-red-900\\/20 p');
+        if(rumorBox && updatedPlayer.rumors) rumorBox.innerText = updatedPlayer.rumors;
+
+        console.log("Veriler hafızadan (localStorage) başarıyla yüklendi.");
+    }
+});
+        </script>
+        
         <header class="py-4"><a href="/?sifre={{ sifre }}" class="text-slate-500 font-black text-[10px] uppercase">← Piyasaya Dön</a></header>
 
 
