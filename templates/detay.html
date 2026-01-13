@@ -166,12 +166,12 @@ function saveChanges() {
         <form action="/oyuncu-guncelle/{{ player.id }}" method="POST" class="grid grid-cols-2 gap-3 text-black">
             <input type="hidden" name="sifre" value="{{ sifre }}">
             
-            <input type="text" name="name" value="{{ player.name }}" class="col-span-2 p-3 rounded-xl font-bold text-xs" placeholder="Oyuncu Adı">
-            <input type="text" name="value" value="{{ player.value }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Değer (M€)">
-            <input type="text" name="age" value="{{ player.age }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Yaş">
-            <input type="text" name="club" value="{{ player.club }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Kulüp">
-            <input type="text" name="country" value="{{ player.country }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Ülke">
-            <input type="text" name="position" value="{{ player.position }}" class="p-3 rounded-xl font-bold text-xs col-span-2" placeholder="Mevki">
+            <input type="text" name="name" id="editName" value="{{ player.name }}" class="col-span-2 p-3 rounded-xl font-bold text-xs" placeholder="Oyuncu Adı">
+            <input type="text" name="value" id="editValue" value="{{ player.value }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Değer (M€)">
+            <input type="text" name="age" id="editAge" value="{{ player.age }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Yaş">
+            <input type="text" name="club" id="editClub" value="{{ player.club }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Kulüp">
+            <input type="text" name="country" id="editCountry" value="{{ player.country }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Ülke">
+            <input type="text" name="position" id="editPosition value="{{ player.position }}" class="p-3 rounded-xl font-bold text-xs col-span-2" placeholder="Mevki">
 
 <input type="text" name="yan_mevki" value="{{ player.yan_mevki }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Yan Mevki">
 <input type="number" name="mac" value="{{ player.mac }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Maç Sayısı">
@@ -203,8 +203,8 @@ function saveChanges() {
 <p class="col-span-2 text-[7px] text-slate-500 text-center mb-2 italic">Sol: 0, Sağ: 100 | Üst: 0, Alt: 100</p>
             
             
-            <textarea name="history" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Transfer Geçmişi">{{ player.history }}</textarea>
-            <textarea name="rumors" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Söylentiler">{{ player.rumors }}</textarea>
+            <textarea name="history" id="editHistory" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Transfer Geçmişi">{{ player.history }}</textarea>
+            <textarea name="rumors" id="editRumors" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Söylentiler">{{ player.rumors }}</textarea>
             
             <button type="submit" class="col-span-2 bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs shadow-lg">
                 BİLGİLERİ GÜNCELLE
