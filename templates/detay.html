@@ -78,6 +78,47 @@
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
         });
     </script>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 px-4">
+    <div class="bg-[#161b2a] p-5 rounded-[2rem] border border-slate-800 shadow-xl">
+        <h4 class="text-[10px] font-black mb-4 uppercase text-center text-blue-500 tracking-widest">Detaylı Mevki</h4>
+        <div class="relative w-full aspect-[4/3] bg-emerald-900/10 rounded-2xl border border-white/5 overflow-hidden">
+            <div class="absolute inset-4 border border-white/10"></div>
+            <div class="absolute top-1/2 left-4 right-4 h-[1px] bg-white/10"></div>
+            
+            <div class="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_15px_white] animate-pulse" 
+                 style="bottom: 25%; left: 47%;"></div>
+            
+            <div class="absolute w-3 h-3 bg-blue-500/50 rounded-full" 
+                 style="bottom: 50%; left: 40%;"></div>
+        </div>
+        <div class="mt-4 text-center text-[10px] uppercase">
+            <p>Ana: <b class="text-white">{{ player.position }}</b></p>
+            <p class="text-slate-400">Yan: <b class="text-slate-200">{{ player.yan_mevki or '-' }}</b></p>
+        </div>
+    </div>
+
+    <div class="bg-[#161b2a] p-5 rounded-[2rem] border border-slate-800 shadow-xl flex flex-col justify-center">
+        <div class="flex justify-around items-center mb-6">
+            <div class="text-center">
+                <div class="w-14 h-14 rounded-full border-4 border-blue-600 flex items-center justify-center text-xs font-bold">100%</div>
+                <p class="text-[8px] mt-2 text-slate-400 uppercase font-black">İlk 11</p>
+            </div>
+            <div class="text-center">
+                <div class="w-14 h-14 rounded-full border-4 border-blue-900 flex items-center justify-center text-xs font-bold">
+                    {{ (player.sure / (player.mac * 90) * 100)|round|int if player.mac > 0 else 0 }}%
+                </div>
+                <p class="text-[8px] mt-2 text-slate-400 uppercase font-black">Süre</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 border-t border-slate-800 pt-4">
+            <div class="text-center"><span class="text-blue-500 font-black">{{ player.mac }}</span> <p class="text-[8px] text-slate-500">MAÇ</p></div>
+            <div class="text-center"><span class="text-green-500 font-black">{{ player.gol }}</span> <p class="text-[8px] text-slate-500">GOL</p></div>
+            <div class="text-center"><span class="text-yellow-500 font-black">{{ player.asist }}</span> <p class="text-[8px] text-slate-500">ASİST</p></div>
+            <div class="text-center"><span class="text-white font-black">{{ player.sure }}'</span> <p class="text-[8px] text-slate-500">SÜRE</p></div>
+        </div>
+    </div>
+    </div>
+    
         {% if is_admin %}
     <div class="mt-10 bg-[#161b2a] p-6 rounded-[2rem] border-2 border-dashed border-red-500 mb-10 mx-4">
         <h3 class="text-red-500 font-black mb-6 uppercase text-center text-[10px] tracking-widest">Admin Yönetim Merkezi</h3>
@@ -91,6 +132,13 @@
             <input type="text" name="club" value="{{ player.club }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Kulüp">
             <input type="text" name="country" value="{{ player.country }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Ülke">
             <input type="text" name="position" value="{{ player.position }}" class="p-3 rounded-xl font-bold text-xs col-span-2" placeholder="Mevki">
+
+<input type="text" name="yan_mevki" value="{{ player.yan_mevki }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Yan Mevki">
+<input type="number" name="mac" value="{{ player.mac }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Maç Sayısı">
+<input type="number" name="gol" value="{{ player.gol }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Gol">
+<input type="number" name="asist" value="{{ player.asist }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Asist">
+<input type="number" name="sure" value="{{ player.sure }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Toplam Süre">
+            
             
             <textarea name="history" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Transfer Geçmişi">{{ player.history }}</textarea>
             <textarea name="rumors" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Söylentiler">{{ player.rumors }}</textarea>
