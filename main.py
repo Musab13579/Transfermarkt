@@ -160,35 +160,39 @@ def oyuncu_duzenle(id):
         p = Oyuncu.query.get_or_404(id)
         
         # OTOMATİK TRANSFER GEÇMİŞİ
-        yeni_kulup = request.form.get('club', p.club)
+        yeni_kulup = request.form.get('club')
         if p.club != yeni_kulup:
             from datetime import datetime
             bugun = datetime.now().strftime("%d/%m/%Y")
+            # Transfer geçmişini en üste ekler
             p.history = f"{bugun}: {p.club} -> {yeni_kulup}\n" + (p.history or "")
             p.club = yeni_kulup
         
-        # TEMEL BİLGİLER
-        p.name = request.form.get('name', p.name)
-        p.age = request.form.get('age', p.age)
-        p.country = request.form.get('country', p.country)
-        p.position = request.form.get('position', p.position)
-        p.yan_mevki = request.form.get('yan_mevki', '')
+        # DİĞER BİLGİLER
+        p.name = request.form.get('name')
+        p.age = request.form.get('age')
+        p.country = request.form.get('country')
+        p.position = request.form.get('position')
+        p.yan_mevki = request.form.get('yan_mevki')
         
-        # SAYISAL VERİLER (Hata Korumalı)
+        # SAYISAL VERİLER VE KOORDİNATLAR
         try:
-            val_str = request.form.get('value', '0').replace(',', '.')
-            p.value = float(val_str) if val_str else 0.0
             p.mac = int(request.form.get('mac') or 0)
             p.gol = int(request.form.get('gol') or 0)
             p.asist = int(request.form.get('asist') or 0)
             p.sure = int(request.form.get('sure') or 0)
+            
+            # Ana Mevki Koordinatları
             p.mevki_x = int(request.form.get('mevki_x') or 47)
             p.mevki_y = int(request.form.get('mevki_y') or 25)
-        except ValueError:
-            pass # Hatalı sayı girilirse olduğu gibi bırakır, çökmez.
+            
+            # Yan Mevki Koordinatları (Yeni ekledik)
+            p.yan_mevki_x = int(request.form.get('yan_mevki_x') or 47)
+            p.yan_mevki_y = int(request.form.get('yan_mevki_y') or 25)
+        except:
+            pass
 
-        p.rumors = request.form.get('rumors', '')
-        
+        p.rumors = request.form.get('rumors') # İstersen burayı kulüp için de kullanabilirsin
         db.session.commit()
     return redirect(url_for('oyuncu_detay', player_id=id, sifre=request.form.get('sifre')))
     
