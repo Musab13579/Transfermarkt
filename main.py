@@ -165,22 +165,28 @@ def oyuncu_duzenle(id):
     if sifre == "futbol123":
         p = Oyuncu.query.get_or_404(id)
         
-               # OTOMATİK TRANSFER GEÇMİŞİ KONTROLÜ
+                       # --- OTOMATİK TRANSFER SİSTEMİ ---
         yeni_kulup = request.form.get('club')
         
-        # Eğer veritabanındaki kulüp (p.club) formdan gelenden farklıysa geçmişe yaz
+        # Eğer mevcut kulüp, formdan gelen yeni kulüple aynı değilse işlem yap
         if p.club != yeni_kulup:
             from datetime import datetime
             bugun = datetime.now().strftime("%d/%m/%Y")
-            yeni_gecmis_satiri = f"{bugun}: {p.club} -> {yeni_kulup}"
             
-            if p.history:
-                p.history = yeni_gecmis_satiri + "\n" + p.history
+            # Yeni satırı oluştur: "13/01/2026: Eski Takım -> Yeni Takım"
+            yeni_satir = f"{bugun}: {p.club} -> {yeni_kulup}"
+            
+            # Eğer geçmiş boşsa veya 'None' yazıyorsa direkt yeni satırı ata
+            if not p.history or p.history == "None":
+                p.history = yeni_satir
             else:
-                p.history = yeni_gecmis_satiri
-            
-            # Kontrol bittikten sonra yeni kulübü ata
-            p.club = yeni_kulup
+                # Varsa, yeni transferi en üste ekle ve bir alt satıra geç (\n)
+                p.history = yeni_satir + "\n" + p.history
+        
+        # Kontrol bittikten sonra asıl kulüp bilgisini güncelle
+        p.club = yeni_kulup
+        # --- SİSTEM BİTİŞ ---
+        
             
             
         # Bilgileri Güncelle
