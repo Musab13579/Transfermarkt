@@ -83,6 +83,29 @@
             },
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
         });
+
+function saveChanges() {
+    const players = JSON.parse(localStorage.getItem('players'));
+    
+    // playerIndex değişkeninin bu sayfada tanımlı olduğundan emin ol
+    const updatedPlayer = {
+        ...players[playerIndex],
+        name: document.getElementById('editName').value,
+        position: document.getElementById('editPosition').value,
+        marketValue: document.getElementById('editValue').value,
+        club: document.getElementById('editClub').value, // İşte burası kulübü günceller
+        image: document.getElementById('editImage').value
+    };
+
+    players[playerIndex] = updatedPlayer;
+    localStorage.setItem('players', JSON.stringify(players));
+    
+    loadPlayerDetails(); 
+    closeEditModal();
+    alert("Bilgiler başarıyla güncellendi!");
+}
+                           
+                           
     </script>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 px-4">
     <div class="bg-[#161b2a] p-5 rounded-[2rem] border border-slate-800 shadow-xl">
