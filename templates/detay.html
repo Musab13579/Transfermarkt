@@ -20,7 +20,7 @@
 
             <div class="space-y-6">
                 <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl">
-                    <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Piyasa Değer Grafiği</h3>
+                    <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Piyasa Değer Grafiği (Canlı)</h3>
                     <div class="h-40"><canvas id="chart"></canvas></div>
                 </div>
 
@@ -54,16 +54,16 @@
             <form id="editForm" class="grid grid-cols-2 gap-3 text-black">
                 <input type="password" name="sifre" value="{{ sifre }}" class="col-span-2 p-3 rounded-xl font-bold text-xs" placeholder="Şifre">
                 <input type="hidden" id="editId" value="{{ player.id }}">
-                <input type="text" id="editName" value="{{ player.name }}" class="p-3 rounded-xl text-xs font-bold" placeholder="İsim">
-                <input type="text" id="editClub" value="{{ player.club }}" class="p-3 rounded-xl text-xs font-bold" placeholder="Kulüp">
-                <input type="text" id="editValue" value="{{ player.value }}" class="p-3 rounded-xl text-xs font-bold" placeholder="Değer">
-                <input type="text" id="editPosition" value="{{ player.position }}" class="p-3 rounded-xl text-xs font-bold" placeholder="Mevki">
-                <input type="number" id="editMac" value="{{ player.mac }}" class="p-3 rounded-xl text-xs font-bold" placeholder="Maç">
-                <input type="number" id="editGol" value="{{ player.gol }}" class="p-3 rounded-xl text-xs font-bold" placeholder="Gol">
-                <input type="number" id="editAsist" value="{{ player.asist }}" class="p-3 rounded-xl text-xs font-bold" placeholder="Asist">
-                <input type="number" id="editSure" value="{{ player.sure }}" class="p-3 rounded-xl text-xs font-bold" placeholder="Süre (DK)">
-                <textarea id="editRumors" class="col-span-2 p-3 rounded-xl text-xs font-bold" placeholder="Söylentiler">{{ player.rumors }}</textarea>
-                <button type="button" onclick="saveChanges(event)" class="col-span-2 bg-blue-600 text-white font-black py-4 rounded-2xl">BİLGİLERİ GÜNCELLE</button>
+                <input type="text" id="editName" class="p-3 rounded-xl text-xs font-bold" placeholder="İsim">
+                <input type="text" id="editClub" class="p-3 rounded-xl text-xs font-bold" placeholder="Kulüp">
+                <input type="text" id="editValue" class="p-3 rounded-xl text-xs font-bold" placeholder="Değer">
+                <input type="text" id="editPosition" class="p-3 rounded-xl text-xs font-bold" placeholder="Mevki">
+                <input type="number" id="editMac" class="p-3 rounded-xl text-xs font-bold" placeholder="Maç">
+                <input type="number" id="editGol" class="p-3 rounded-xl text-xs font-bold" placeholder="Gol">
+                <input type="number" id="editAsist" class="p-3 rounded-xl text-xs font-bold" placeholder="Asist">
+                <input type="number" id="editSure" class="p-3 rounded-xl text-xs font-bold" placeholder="Süre (DK)">
+                <textarea id="editRumors" class="col-span-2 p-3 rounded-xl text-xs font-bold" placeholder="Söylentiler"></textarea>
+                <button type="button" onclick="saveChanges(event)" class="col-span-2 bg-blue-600 text-white font-black py-4 rounded-2xl">BİLGİLERİ VE GRAFİĞİ GÜNCELLE</button>
             </form>
         </div>
         {% endif %}
@@ -71,22 +71,23 @@
 
     <script>
         let myChart;
+        const currentId = "{{ player.id }}";
+
         document.addEventListener('DOMContentLoaded', function() {
             const players = JSON.parse(localStorage.getItem('players')) || [];
-            const currentId = "{{ player.id }}";
             const savedData = players.find(p => String(p.id) === String(currentId));
 
-            // Grafik Verilerini Hazırla
-            let labels = {{ (player.date_history or []) | tojson }};
-            let dataValues = {{ (player.value_history or []) | tojson }};
+            // İlk verileri Python'dan alalım
+            let labels = ["Başlangıç"];
+            let dataValues = [parseFloat("{{ player.value }}") || 0];
 
+            // Eğer hafızada veri varsa, ekranı ve formu hafızaya göre güncelle
             if (savedData) {
                 document.getElementById('displayName').innerText = savedData.name;
                 document.getElementById('displayValue').innerText = savedData.marketValue + " M €";
                 document.getElementById('displayClubPos').innerText = savedData.club + " | " + savedData.position;
                 document.getElementById('displayRumors').innerText = savedData.rumors || 'Sakin...';
                 
-                // İstatistikleri Giydir
                 document.getElementById('statMac').innerText = savedData.mac || 0;
                 document.getElementById('statGol').innerText = savedData.gol || 0;
                 document.getElementById('statAsist').innerText = savedData.asist || 0;
@@ -95,10 +96,31 @@
                 let percent = Math.min(100, Math.round(((savedData.sure || 0) / ((savedData.mac || 1) * 90)) * 100));
                 document.getElementById('statCircleSure').innerText = percent + "%";
 
-                // Eğer yeni değer girilmişse grafiğe ekle
-                if(savedData.marketValue) {
-                    labels.push("GÜNCEL");
-                    dataValues.push(parseFloat(savedData.marketValue));
+                // FORM KUTULARINI GÜNCELLE (Burası senin istediğin yer)
+                if(document.getElementById('editName')) {
+                    document.getElementById('editName').value = savedData.name;
+                    document.getElementById('editClub').value = savedData.club;
+                    document.getElementById('editValue').value = savedData.marketValue;
+                    document.getElementById('editPosition').value = savedData.position;
+                    document.getElementById('editMac').value = savedData.mac;
+                    document.getElementById('editGol').value = savedData.gol;
+                    document.getElementById('editAsist').value = savedData.asist;
+                    document.getElementById('editSure').value = savedData.sure;
+                    document.getElementById('editRumors').value = savedData.rumors;
+                }
+
+                // GRAFİK GEÇMİŞİNİ YÜKLE
+                if (savedData.history && savedData.history.length > 0) {
+                    labels = savedData.history.map((_, i) => i === 0 ? "İlk Değer" : "Güncelleme " + i);
+                    dataValues = savedData.history.map(v => parseFloat(v));
+                }
+            } else {
+                // Hafızada yoksa form kutularını Python verisiyle doldur
+                if(document.getElementById('editName')) {
+                    document.getElementById('editName').value = "{{ player.name }}";
+                    document.getElementById('editClub').value = "{{ player.club }}";
+                    document.getElementById('editValue').value = "{{ player.value }}";
+                    document.getElementById('editPosition').value = "{{ player.position }}";
                 }
             }
 
@@ -110,10 +132,17 @@
                     labels: labels,
                     datasets: [{ 
                         data: dataValues, 
-                        borderColor: '#3b82f6', tension: 0.4, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)'
+                        borderColor: '#3b82f6', tension: 0.3, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        pointRadius: 5, pointBackgroundColor: '#3b82f6'
                     }]
                 },
-                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+                options: { 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } }, 
+                        x: { grid: { display: false }, ticks: { color: '#64748b' } } 
+                    } 
+                }
             });
         });
 
@@ -121,26 +150,34 @@
             if(document.getElementsByName('sifre')[0].value !== "futbol123") { alert("Şifre Yanlış!"); return; }
             
             let players = JSON.parse(localStorage.getItem('players')) || [];
-            const currentId = document.getElementById('editId').value;
-            
-            const newData = {
-                id: currentId,
-                name: document.getElementById('editName').value,
-                club: document.getElementById('editClub').value,
-                position: document.getElementById('editPosition').value,
-                marketValue: document.getElementById('editValue').value,
-                rumors: document.getElementById('editRumors').value,
-                mac: document.getElementById('editMac').value,
-                gol: document.getElementById('editGol').value,
-                asist: document.getElementById('editAsist').value,
-                sure: document.getElementById('editSure').value
-            };
-
             let idx = players.findIndex(p => String(p.id) === String(currentId));
-            if(idx !== -1) players[idx] = newData; else players.push(newData);
+            
+            // Mevcut oyuncu verisini al veya yeni oluştur
+            let playerObj = idx !== -1 ? players[idx] : { id: currentId, history: [parseFloat("{{ player.value }}")] };
+            
+            const newValue = document.getElementById('editValue').value;
+
+            // GRAFİK MANTIĞI: Eğer değer değiştiyse geçmişe ekle
+            if (!playerObj.history) playerObj.history = [parseFloat("{{ player.value }}")];
+            if (playerObj.marketValue !== newValue) {
+                playerObj.history.push(parseFloat(newValue));
+            }
+
+            // Diğer verileri güncelle
+            playerObj.name = document.getElementById('editName').value;
+            playerObj.club = document.getElementById('editClub').value;
+            playerObj.position = document.getElementById('editPosition').value;
+            playerObj.marketValue = newValue;
+            playerObj.rumors = document.getElementById('editRumors').value;
+            playerObj.mac = document.getElementById('editMac').value;
+            playerObj.gol = document.getElementById('editGol').value;
+            playerObj.asist = document.getElementById('editAsist').value;
+            playerObj.sure = document.getElementById('editSure').value;
+
+            if(idx !== -1) players[idx] = playerObj; else players.push(playerObj);
 
             localStorage.setItem('players', JSON.stringify(players));
-            alert("BAŞARIYLA GÜNCELLENDİ!");
+            alert("OYUNCU VE GRAFİK BAŞARIYLA GÜNCELLENDİ!");
             location.reload();
         }
     </script>
