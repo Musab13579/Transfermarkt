@@ -10,33 +10,40 @@
     <div class="max-w-4xl mx-auto">
         <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Hafızadaki tabloyu çek
-    let players = JSON.parse(localStorage.getItem('players')) || [];
-    const currentId = "{{ player.id }}";
-    
-    // 2. Bu oyuncunun hafızada güncel kaydı var mı bak
-    const updatedPlayer = players.find(p => String(p.id) === String(currentId));
+    // 1. Hafızadan güncel listeyi çek
+    const players = JSON.parse(localStorage.getItem('players')) || [];
+    const currentId = "{{ player.id }}"; // Python'un verdiği ID
 
-    if (updatedPlayer) {
-        // 3. Varsa, sayfadaki eski bilgileri hafızadakilerle değiştir
-        // İsim Güncelleme
-        const nameHeader = document.querySelector('h1.font-black');
-        if(nameHeader) nameHeader.innerText = updatedPlayer.name;
+    // 2. Bu oyuncuyu hafızada bul
+    const savedData = players.find(p => String(p.id) === String(currentId));
 
-        // 26. satırı tam olarak böyle yap (Noktalara dikkat):
-const valueBadge = document.querySelector('.bg-blue-600.text-white.text-2xl');
-        
-        // Kulüp ve Mevki Güncelleme
-        const clubInfo = document.querySelector('p.text-blue-400');
-        if(clubInfo) clubInfo.innerText = updatedPlayer.club + " | " + updatedPlayer.position;
-        
-        // Söylentileri Güncelleme
-        const rumorBox = document.querySelector('.bg-red-900\\/20 p');
-        if(rumorBox && updatedPlayer.rumors) rumorBox.innerText = updatedPlayer.rumors;
+    if (savedData) {
+        console.log("Hafızadan veri bulundu, sayfa güncelleniyor...");
 
-        console.log("Veriler hafızadan (localStorage) başarıyla yüklendi.");
+        // İSİM GÜNCELLE (H1 ve Breadcrumb)
+        const nameTags = document.querySelectorAll('h1.font-black, .text-gray-400.text-xs span.text-white');
+        nameTags.forEach(el => el.innerText = savedData.name);
+
+        // PİYASA DEĞERİ GÜNCELLE
+        const valueTag = document.querySelector('.bg-blue-600.text-white.text-2xl');
+        if(valueTag) valueTag.innerText = savedData.marketValue + " M €";
+
+        // KULÜP VE MEVKİ GÜNCELLE
+        const clubTag = document.querySelector('p.text-blue-400');
+        if(clubTag) clubTag.innerText = savedData.club + " | " + savedData.position;
+
+        // SÖYLENTİLERİ GÜNCELLE
+        const rumorTag = document.querySelector('.bg-red-900\\/20 p');
+        if(rumorTag) rumorTag.innerText = savedData.rumors;
+
+        // FORM KUTULARINI DA DOLDUR (Kullanıcı tekrar güncellemek isterse diye)
+        if(document.getElementById('editName')) document.getElementById('editName').value = savedData.name;
+        if(document.getElementById('editClub')) document.getElementById('editClub').value = savedData.club;
+        if(document.getElementById('editValue')) document.getElementById('editValue').value = savedData.marketValue;
+        if(document.getElementById('editRumors')) document.getElementById('editRumors').value = savedData.rumors;
     }
 });
+            
         </script>
         
         <header class="py-4"><a href="/?sifre={{ sifre }}" class="text-slate-500 font-black text-[10px] uppercase">← Piyasaya Dön</a></header>
