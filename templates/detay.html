@@ -8,49 +8,75 @@
 </head>
 <body class="bg-[#0b0f1a] text-white p-4">
     <div class="max-w-4xl mx-auto">
+        
         <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Hafızadan güncel listeyi çek
-    const players = JSON.parse(localStorage.getItem('players')) || [];
-    const currentId = "{{ player.id }}"; // Python'un verdiği ID
+        // SAYFA AÇILDIĞINDA HAFIZADAKİ VERİLERİ YÜKLE
+        document.addEventListener('DOMContentLoaded', function() {
+            const players = JSON.parse(localStorage.getItem('players')) || [];
+            const currentId = "{{ player.id }}";
+            const savedData = players.find(p => String(p.id) === String(currentId));
 
-    // 2. Bu oyuncuyu hafızada bul
-    const savedData = players.find(p => String(p.id) === String(currentId));
+            if (savedData) {
+                console.log("Hafızadan güncel veri yüklendi.");
+                // Ekranda görünen kısımları güncelle
+                document.querySelectorAll('h1.font-black').forEach(el => el.innerText = savedData.name);
+                document.querySelector('.bg-blue-600.italic.shadow-lg').innerText = savedData.marketValue + " M €";
+                document.querySelector('p.text-blue-500.font-bold').innerText = savedData.club + " | " + savedData.position;
+                document.querySelector('.bg-red-900\\/10 p').innerText = savedData.rumors || 'Sakin...';
+                
+                // Form içindeki kutuları da doldur (güncelleme yaparken kolaylık olsun)
+                if(document.getElementById('editName')) document.getElementById('editName').value = savedData.name;
+                if(document.getElementById('editClub')) document.getElementById('editClub').value = savedData.club;
+                if(document.getElementById('editValue')) document.getElementById('editValue').value = savedData.marketValue;
+                if(document.getElementById('editRumors')) document.getElementById('editRumors').value = savedData.rumors;
+                if(document.getElementById('editPosition')) document.getElementById('editPosition').value = savedData.position;
+            }
+        });
 
-    if (savedData) {
-        console.log("Hafızadan veri bulundu, sayfa güncelleniyor...");
-
-        // İSİM GÜNCELLE (H1 ve Breadcrumb)
-        const nameTags = document.querySelectorAll('h1.font-black, .text-gray-400.text-xs span.text-white');
-        nameTags.forEach(el => el.innerText = savedData.name);
-
-        // PİYASA DEĞERİ GÜNCELLE
-        const valueTag = document.querySelector('.bg-blue-600.text-white.text-2xl');
-        if(valueTag) valueTag.innerText = savedData.marketValue + " M €";
-
-        // KULÜP VE MEVKİ GÜNCELLE
-        const clubTag = document.querySelector('p.text-blue-400');
-        if(clubTag) clubTag.innerText = savedData.club + " | " + savedData.position;
-
-        // SÖYLENTİLERİ GÜNCELLE
-        const rumorTag = document.querySelector('.bg-red-900\\/20 p');
-        if(rumorTag) rumorTag.innerText = savedData.rumors;
-
-        // FORM KUTULARINI DA DOLDUR (Kullanıcı tekrar güncellemek isterse diye)
-        if(document.getElementById('editName')) document.getElementById('editName').value = savedData.name;
-        if(document.getElementById('editClub')) document.getElementById('editClub').value = savedData.club;
-        if(document.getElementById('editValue')) document.getElementById('editValue').value = savedData.marketValue;
-        if(document.getElementById('editRumors')) document.getElementById('editRumors').value = savedData.rumors;
-    }
-});
+        // GÜNCELLEME BUTONUNA BASILINCA ÇALIŞAN FONKSİYON
+        function saveChanges(event) {
+            if(event) event.preventDefault();
             
+            // 1. Şifre Kontrolü (Senin istediğin futbol123)
+            const sifreInput = document.getElementsByName('sifre')[0];
+            const dogruSifre = "futbol123";
+
+            if (sifreInput.value !== dogruSifre) {
+                alert("Hatalı Şifre! İşlem yapılamaz.");
+                return;
+            }
+
+            try {
+                let players = JSON.parse(localStorage.getItem('players')) || [];
+                const currentId = document.getElementById('editId').value;
+
+                const updatedData = {
+                    id: currentId,
+                    name: document.getElementById('editName').value,
+                    club: document.getElementById('editClub').value,
+                    position: document.getElementById('editPosition').value,
+                    marketValue: document.getElementById('editValue').value,
+                    rumors: document.getElementById('editRumors').value
+                };
+
+                let idx = players.findIndex(p => String(p.id) === String(currentId));
+                if (idx !== -1) {
+                    players[idx] = updatedData;
+                } else {
+                    players.push(updatedData);
+                }
+
+                localStorage.setItem('players', JSON.stringify(players));
+                alert("BAŞARIYLA GÜNCELLENDİ!");
+                location.reload(); // Sayfayı yenile ki yeni veriler gelsin
+            } catch (err) {
+                alert("Hata: " + err.message);
+            }
+        }
         </script>
         
         <header class="py-4"><a href="/?sifre={{ sifre }}" class="text-slate-500 font-black text-[10px] uppercase">← Piyasaya Dön</a></header>
 
-
-
-        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
             <div class="bg-[#161b2a] p-10 rounded-[3rem] text-center shadow-2xl border border-slate-800">
                 <img src="{{ player.img }}" class="h-64 mx-auto object-contain mb-6">
@@ -73,43 +99,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             </div>
-<div class="space-y-6">
-    <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl">
-        <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Oyuncu Profili</h3>
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <p class="text-[8px] text-slate-500 font-bold uppercase italic">Doğum Tarihi / Yaş</p>
-                <p class="text-xs font-black text-white">{{ player.age }}</p>
+
+            <div class="space-y-6">
+                <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl">
+                    <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Oyuncu Profili</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-[8px] text-slate-500 font-bold uppercase italic">Doğum Tarihi / Yaş</p>
+                            <p class="text-xs font-black text-white">{{ player.age }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] text-slate-500 font-bold uppercase italic">Uyruk</p>
+                            <p class="text-xs font-black text-white">{{ player.country }}</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 border-t border-slate-800/50 pt-4">
+                        <p class="text-[8px] text-slate-500 font-bold uppercase mb-2 italic">Kariyer / Transfer Geçmişi</p>
+                        <div class="text-[11px] text-slate-300 leading-relaxed italic whitespace-pre-line">
+                            {{ player.history if player.history else 'Kariyer bilgisi henüz girilmemiş.' }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl">
+                    <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Piyasa Değer Grafiği</h3>
+                    <div class="h-40"><canvas id="chart"></canvas></div>
+                </div>
+
+                <div class="bg-red-900/10 p-6 rounded-[2rem] border border-red-800 shadow-xl">
+                    <h3 class="text-red-500 font-black mb-2 uppercase text-[9px] tracking-widest animate-pulse">🔥 Aktif Söylentiler</h3>
+                    <p class="text-[12px] italic text-white/90">{{ player.rumors or 'Sakin...' }}</p>
+                </div>
             </div>
-            <div>
-                <p class="text-[8px] text-slate-500 font-bold uppercase italic">Uyruk</p>
-                <p class="text-xs font-black text-white">{{ player.country }}</p>
-            </div>
-        </div>
-        <div class="mt-6 border-t border-slate-800/50 pt-4">
-            <div class="mt-6 border-t border-slate-800/50 pt-4">
-    <p class="text-[8px] text-slate-500 font-bold uppercase mb-2 italic">Kariyer / Transfer Geçmişi</p>
-    <div class="text-[11px] text-slate-300 leading-relaxed italic whitespace-pre-line">
-        {{ player.history if player.history else 'Kariyer bilgisi henüz girilmemiş.' }}
-    </div>
-            </div>
-            
         </div>
     </div>
 
-    <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl">
-        <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Piyasa Değer Grafiği</h3>
-        <div class="h-40"><canvas id="chart"></canvas></div>
-    </div>
-
-    <div class="bg-red-900/10 p-6 rounded-[2rem] border border-red-800 shadow-xl">
-        <h3 class="text-red-500 font-black mb-2 uppercase text-[9px] tracking-widest animate-pulse">🔥 Aktif Söylentiler</h3>
-        <p class="text-[12px] italic text-white/90">{{ player.rumors or 'Sakin...' }}</p>
-    </div>
-    </div>
-        </div>
-    </div>
     <script>
+        // Grafik Ayarları
         new Chart(document.getElementById('chart'), {
             type: 'line',
             data: {
@@ -121,171 +147,37 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
         });
-
-                            
-      function saveChanges(event) {
-    if(event) event.preventDefault();
-    
-    // 1. Şifreyi kontrol et
-    const girilenSifre = document.getElementsByName('sifre')[0].value;
-    const dogruSifre = "futbol123";
-
-    if (girilenSifre !== dogruSifre) {
-        alert("Hatalı Şifre! Güncelleme yapılamaz.");
-        return;
-    }
-
-    // 2. Verileri Kaydet
-    try {
-        let players = JSON.parse(localStorage.getItem('players')) || [];
-        const currentId = document.getElementById('editId').value;
-
-        const updatedData = {
-            id: currentId,
-            name: document.getElementById('editName').value,
-            club: document.getElementById('editClub').value,
-            position: document.getElementById('editPosition').value,
-            marketValue: document.getElementById('editValue').value,
-            rumors: document.getElementById('editRumors').value
-        };
-
-        let foundIndex = players.findIndex(p => String(p.id) === String(currentId));
-        
-        if (foundIndex !== -1) {
-            players[foundIndex] = { ...players[foundIndex], ...updatedData };
-        } else {
-            players.push(updatedData);
-        }
-
-        localStorage.setItem('players', JSON.stringify(players));
-        alert("Şifre Doğrulandı ve Tablo Güncellendi!");
-        location.reload();
-    } catch (err) {
-        alert("Hata oluştu: " + err.message);
-    }
-}
-
-
-            
-                           
-                           
-                           
-                           
     </script>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 px-4">
-    <div class="bg-[#161b2a] p-5 rounded-[2rem] border border-slate-800 shadow-xl">
-        <h4 class="text-[10px] font-black mb-4 uppercase text-center text-blue-500 tracking-widest">Detaylı Mevki</h4>
-        <div class="relative w-full aspect-[4/3] bg-emerald-900/10 rounded-2xl border border-white/5 overflow-hidden">
-            <div class="absolute inset-4 border border-white/10"></div>
-            <div class="absolute top-1/2 left-4 right-4 h-[1px] bg-white/10"></div>
 
-<div class="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_15px_white] animate-pulse z-10" 
-     style="top: {{ player.mevki_y or 25 }}%; left: {{ player.mevki_x or 47 }}%;">
-     <span id="playerPositionBadge" class="absolute -top-4 -left-2 text-[7px] text-white font-bold uppercase whitespace-nowrap bg-black/60 px-1 rounded">
-    {{ player.position }}
-     </span>
-</div>
-            
-
-{% if player.yan_mevki %}
-<div class="absolute w-3 h-3 bg-blue-400 rounded-full border-2 border-white opacity-70 z-10" 
-     style="top: {{ player.yan_mevki_y or 40 }}%; left: {{ player.yan_mevki_x or 60 }}%;">
-     <span class="absolute -top-4 -left-2 text-[8px] text-white font-bold whitespace-nowrap uppercase">{{ player.yan_mevki }}</span>
-</div>
-{% endif %}
-            
-        </div>
-        <div class="mt-4 text-center text-[10px] uppercase">
-            <p>Ana: <b class="text-white">{{ player.position }}</b></p>
-            <p class="text-slate-400">Yan: <b class="text-slate-200">{{ player.yan_mevki or '-' }}</b></p>
-        </div>
-    </div>
-
-    <div class="bg-[#161b2a] p-5 rounded-[2rem] border border-slate-800 shadow-xl flex flex-col justify-center">
-        <div class="flex justify-around items-center mb-6">
-            <div class="text-center">
-                <div class="w-14 h-14 rounded-full border-4 border-blue-600 flex items-center justify-center text-xs font-bold">100%</div>
-                <p class="text-[8px] mt-2 text-slate-400 uppercase font-black">İlk 11</p>
-            </div>
-            <div class="text-center">
-                <div class="w-14 h-14 rounded-full border-4 border-blue-900 flex items-center justify-center text-xs font-bold">
-                    {{ ((player.sure / (player.mac * 90 if player.mac > 0 else 1)) * 100)|round|int if player.mac > 0 else 0 }}%
-                    
-                </div>
-                <p class="text-[8px] mt-2 text-slate-400 uppercase font-black">Süre</p>
-            </div>
-        </div>
-        <div class="grid grid-cols-2 gap-4 border-t border-slate-800 pt-4">
-            <div class="text-center"><span class="text-blue-500 font-black">{{ player.mac }}</span> <p class="text-[8px] text-slate-500">MAÇ</p></div>
-            <div class="text-center"><span class="text-green-500 font-black">{{ player.gol }}</span> <p class="text-[8px] text-slate-500">GOL</p></div>
-            <div class="text-center"><span class="text-yellow-500 font-black">{{ player.asist }}</span> <p class="text-[8px] text-slate-500">ASİST</p></div>
-            <div class="text-center"><span class="text-white font-black">{{ player.sure }}'</span> <p class="text-[8px] text-slate-500">SÜRE</p></div>
-        </div>
-    </div>
-    </div>
-    
-        {% if is_admin %}
-    <div class="mt-10 bg-[#161b2a] p-6 rounded-[2rem] border-2 border-dashed border-red-500 mb-10 mx-4">
+    {% if is_admin %}
+    <div class="mt-10 bg-[#161b2a] p-6 rounded-[2rem] border-2 border-dashed border-red-500 mb-10 mx-auto max-w-4xl">
         <h3 class="text-red-500 font-black mb-6 uppercase text-center text-[10px] tracking-widest">Admin Yönetim Merkezi</h3>
         
-        <form action="/oyuncu-guncelle/{{ player.id }}" method="POST" class="grid grid-cols-2 gap-3 text-black">
-            <input type="hidden" name="sifre" value="{{ sifre }}">
+        <form id="adminForm" class="grid grid-cols-2 gap-3 text-black">
+            <input type="password" name="sifre" value="{{ sifre }}" class="col-span-2 p-3 rounded-xl font-bold text-xs" placeholder="Şifrenizi Girin (futbol123)">
             <input type="hidden" id="editId" value="{{ player.id }}">
-            <input type="text" name="name" id="editName" value="{{ player.name }}" class="col-span-2 p-3 rounded-xl font-bold text-xs" placeholder="Oyuncu Adı">
-            <input type="text" name="value" id="editValue" value="{{ player.value }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Değer (M€)">
-            <input type="text" name="age" id="editAge" value="{{ player.age }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Yaş">
-            <input type="text" name="club" id="editClub" value="{{ player.club }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Kulüp">
-            <input type="text" name="country" id="editCountry" value="{{ player.country }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Ülke">
-<label class="text-[10px] text-gray-500 font-bold uppercase">Mevki</label>
-<select id="editPosition" class="col-span-2 bg-gray-800 text-white p-3 rounded-xl border border-white/10 outline-none w-full">
-    <option value="Kaleci">Kaleci</option>
-    <option value="Stoper">Stoper</option>
-    <option value="Sağ Bek">Sağ Bek</option>
-    <option value="Sol Bek">Sol Bek</option>
-    <option value="Merkez Orta Saha">Merkez Orta Saha</option>
-    <option value="On Numara">On Numara</option>
-    <option value="Sağ Kanat">Sağ Kanat</option>
-    <option value="Sol Kanat">Sol Kanat</option>
-    <option value="Forvet">Forvet</option>
-</select>
             
+            <input type="text" id="editName" value="{{ player.name }}" class="col-span-2 p-3 rounded-xl font-bold text-xs" placeholder="Oyuncu Adı">
+            <input type="text" id="editValue" value="{{ player.value }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Değer (M€)">
+            <input type="text" id="editClub" value="{{ player.club }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Kulüp">
             
-<input type="text" name="yan_mevki" value="{{ player.yan_mevki }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Yan Mevki">
-<input type="number" name="mac" value="{{ player.mac }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Maç Sayısı">
-<input type="number" name="gol" value="{{ player.gol }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Gol">
-<input type="number" name="asist" value="{{ player.asist }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Asist">
-<input type="number" name="sure" value="{{ player.sure }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Toplam Süre">
+            <select id="editPosition" class="col-span-2 bg-white text-black p-3 rounded-xl font-bold text-xs outline-none">
+                <option value="Kaleci" {% if player.position == 'Kaleci' %}selected{% endif %}>Kaleci</option>
+                <option value="Stoper" {% if player.position == 'Stoper' %}selected{% endif %}>Stoper</option>
+                <option value="Sağ Bek" {% if player.position == 'Sağ Bek' %}selected{% endif %}>Sağ Bek</option>
+                <option value="Sol Bek" {% if player.position == 'Sol Bek' %}selected{% endif %}>Sol Bek</option>
+                <option value="Merkez Orta Saha" {% if player.position == 'Merkez Orta Saha' %}selected{% endif %}>Merkez Orta Saha</option>
+                <option value="On Numara" {% if player.position == 'On Numara' %}selected{% endif %}>On Numara</option>
+                <option value="Sağ Kanat" {% if player.position == 'Sağ Kanat' %}selected{% endif %}>Sağ Kanat</option>
+                <option value="Sol Kanat" {% if player.position == 'Sol Kanat' %}selected{% endif %}>Sol Kanat</option>
+                <option value="Forvet" {% if player.position == 'Forvet' %}selected{% endif %}>Forvet</option>
+            </select>
             
-<div class="col-span-2 grid grid-cols-2 gap-2 mt-2">
-    <div class="relative">
-        <span class="absolute -top-2 left-2 bg-[#161b2a] px-1 text-[8px] text-blue-500 font-bold uppercase">Nokta Sağ-Sol (X)</span>
-        <input type="number" name="mevki_x" value="{{ player.mevki_x or 47 }}" class="w-full p-3 rounded-xl font-bold text-xs text-black" placeholder="0-100">
-    </div>
-    <div class="relative">
-        <span class="absolute -top-2 left-2 bg-[#161b2a] px-1 text-[8px] text-blue-500 font-bold uppercase">Nokta Alt-Üst (Y)</span>
-        <input type="number" name="mevki_y" value="{{ player.mevki_y or 25 }}" class="w-full p-3 rounded-xl font-bold text-xs text-black" placeholder="0-100">
-    </div>
-</div>
-            <div class="col-span-2 grid grid-cols-2 gap-2 mt-2">
-    <div class="relative">
-        <span class="absolute -top-2 left-2 bg-[#161b2a] px-1 text-[8px] text-yellow-500 font-bold uppercase">Yan Mevki X</span>
-        <input type="number" name="yan_mevki_x" value="{{ player.yan_mevki_x or 47 }}" class="w-full p-3 rounded-xl font-bold text-xs text-black" placeholder="0-100">
-    </div>
-    <div class="relative">
-        <span class="absolute -top-2 left-2 bg-[#161b2a] px-1 text-[8px] text-yellow-400 font-bold uppercase">Yan Mevki Y</span>
-        <input type="number" name="yan_mevki_y" value="{{ player.yan_mevki_y or 40 }}" class="w-full p-3 rounded-xl font-bold text-xs text-black" placeholder="0-100">
-    </div>
-            </div>
+            <textarea id="editRumors" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Söylentiler">{{ player.rumors }}</textarea>
             
-<p class="col-span-2 text-[7px] text-slate-500 text-center mb-2 italic">Sol: 0, Sağ: 100 | Üst: 0, Alt: 100</p>
-            
-            
-            <textarea name="history" id="editHistory" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Transfer Geçmişi">{{ player.history }}</textarea>
-            <textarea name="rumors" id="editRumors" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Söylentiler">{{ player.rumors }}</textarea>
-            
-         <button type="button" onclick="saveChanges(event)" class="col-span-2 w-full bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs mt-4">
-    BİLGİLERİ GÜNCELLE
-</button>
+            <button type="button" onclick="saveChanges(event)" class="col-span-2 w-full bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs mt-4 hover:bg-blue-700 transition-all">
+                BİLGİLERİ GÜNCELLE VE HAFIZAYA YAZ
+            </button>
         </form>
 
         <div class="mt-8 pt-6 border-t border-slate-800 text-center">
