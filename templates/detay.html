@@ -86,9 +86,9 @@
             <div class="absolute top-1/2 left-4 right-4 h-[1px] bg-white/10"></div>
             
             <div class="absolute w-4 h-4 bg-white rounded-full shadow-[0_0_15px_white] animate-pulse" 
-     style="bottom: {% if 'Forvet' in player.position %}15%{% elif 'Orta Saha' in player.position %}45%{% elif 'Bek' in player.position %}70%{% else %}85%{% endif %}; 
-            left: {% if 'Sol' in player.position %}20%{% elif 'Sağ' in player.position %}75%{% else %}47%{% endif %};">
+     style="top: {{ player.mevki_y or 25 }}%; left: {{ player.mevki_x or 47 }}%;">
             </div>
+            
             
             
             <div class="absolute w-3 h-3 bg-blue-500/50 rounded-full" 
@@ -108,7 +108,8 @@
             </div>
             <div class="text-center">
                 <div class="w-14 h-14 rounded-full border-4 border-blue-900 flex items-center justify-center text-xs font-bold">
-                    {{ (player.sure / (player.mac * 90) * 100)|round|int if player.mac > 0 else 0 }}%
+                    {{ ((player.sure / (player.mac * 90 if player.mac > 0 else 1)) * 100)|round|int if player.mac > 0 else 0 }}%
+                    
                 </div>
                 <p class="text-[8px] mt-2 text-slate-400 uppercase font-black">Süre</p>
             </div>
@@ -141,6 +142,18 @@
 <input type="number" name="gol" value="{{ player.gol }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Gol">
 <input type="number" name="asist" value="{{ player.asist }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Asist">
 <input type="number" name="sure" value="{{ player.sure }}" class="p-3 rounded-xl font-bold text-xs" placeholder="Toplam Süre">
+            
+<div class="col-span-2 grid grid-cols-2 gap-2 mt-2">
+    <div class="relative">
+        <span class="absolute -top-2 left-2 bg-[#161b2a] px-1 text-[8px] text-blue-500 font-bold uppercase">Nokta Sağ-Sol (X)</span>
+        <input type="number" name="mevki_x" value="{{ player.mevki_x or 47 }}" class="w-full p-3 rounded-xl font-bold text-xs text-black" placeholder="0-100">
+    </div>
+    <div class="relative">
+        <span class="absolute -top-2 left-2 bg-[#161b2a] px-1 text-[8px] text-blue-500 font-bold uppercase">Nokta Alt-Üst (Y)</span>
+        <input type="number" name="mevki_y" value="{{ player.mevki_y or 25 }}" class="w-full p-3 rounded-xl font-bold text-xs text-black" placeholder="0-100">
+    </div>
+</div>
+<p class="col-span-2 text-[7px] text-slate-500 text-center mb-2 italic">Sol: 0, Sağ: 100 | Üst: 0, Alt: 100</p>
             
             
             <textarea name="history" class="col-span-2 p-3 rounded-xl font-bold text-xs h-20" placeholder="Transfer Geçmişi">{{ player.history }}</textarea>
