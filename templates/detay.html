@@ -99,7 +99,7 @@
         club: document.getElementById('editClub').value, // İşte burası kulübü günceller
         rumors: document.getElementById('editRumors').value, // Söylentileri günceller
         image: document.getElementById('editImage') ? document.getElementById('editImage').value : players[playerIndex].image
-           
+            
 
     players[playerIndex] = updatedPlayer;
     localStorage.setItem('players', JSON.stringify(players));
@@ -211,7 +211,8 @@
             
             <button type="button" onclick="saveChanges(event)" class="col-span-2 bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs">
     BİLGİLERİ GÜNCELLE
-</button>
+            </button>
+            
         </form>
 
         <div class="mt-8 pt-6 border-t border-slate-800 text-center">
