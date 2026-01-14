@@ -7,10 +7,29 @@
     <style>
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
         .animate-marquee { display: inline-block; animation: marquee 30s linear infinite; }
+        .hidden-list { display: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-[#0b0f1a] text-white font-sans">
     
+    {% macro render_best(players, pos_name) %}
+        {% set best = players | selectattr('position', 'equalto', pos_name) | sort(attribute='value', reverse=True) | first %}
+        <div class="flex flex-col bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center text-[10px] font-black text-blue-400 border border-blue-500/30">{{ pos_name[:2].upper() }}</div>
+                    <div>
+                        <p class="text-[9px] text-slate-500 font-bold uppercase">{{ pos_name }}</p>
+                        <p id="best-{{ pos_name|replace(' ', '-') }}" class="text-xs font-black italic">{{ best.name if best else '---' }}</p>
+                    </div>
+                </div>
+                <p id="best-val-{{ pos_name|replace(' ', '-') }}" class="text-xs font-black text-yellow-500">{{ best.value if best else '0' }} M €</p>
+            </div>
+        </div>
+    {% endmacro %}
+
     <div class="bg-red-900 py-2 overflow-hidden border-b border-red-700">
         <div class="whitespace-nowrap animate-marquee font-black uppercase text-[10px] tracking-widest text-red-100">
             {% for p in players if p.rumors %} ⚡ {{ p.name }}: {{ p.rumors }} &nbsp;&nbsp;&nbsp;&nbsp; {% endfor %}
@@ -18,33 +37,112 @@
     </div>
 
     <div class="container mx-auto p-4 max-w-5xl">
-        <div class="mb-6">
-            <h2 class="text-blue-500 font-bold text-xs uppercase mb-3 italic flex items-center gap-2">
-                <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span> Son Hareketler
-            </h2>
+        <div class="mb-6 mt-4">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                </span>
+                <h2 class="text-blue-500 font-bold text-xs uppercase tracking-tighter">Son Hareketler</h2>
+            </div>
             <div id="latest-news-container" class="grid grid-cols-2 md:grid-cols-5 gap-3">
                 </div>
         </div>
 
-        <header class="py-8">
+        <header class="flex justify-between items-center py-8">
             <h1 class="text-2xl font-black italic text-blue-500 uppercase tracking-tighter italic">FUTBOL MARKET</h1>
+            <button onclick="toggleBestList()" class="w-12 h-12 flex items-center justify-center bg-slate-800 rounded-2xl text-2xl hover:bg-blue-600 transition shadow-lg border border-slate-700">⋮</button>
         </header>
 
-        <div class="mb-8">
-            <input type="text" id="src" onkeyup="filterAndSort()" placeholder="Oyuncu veya kulüp ara..." 
-                   class="w-full bg-[#161b2a] border border-slate-800 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+        <div id="bestListArea" class="hidden-list mb-12 animate-fade-in">
+            <h2 class="text-center font-black text-blue-400 mb-6 uppercase italic text-[10px] tracking-[0.3em]">🏆 MEVKİLERİN EN PAHALILARI</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 bg-[#161b2a] p-6 rounded-[2.5rem] border border-blue-900/20 shadow-2xl">
+                {{ render_best(players, 'Kaleci') }} {{ render_best(players, 'Stoper') }}
+                {{ render_best(players, 'Sol Bek') }} {{ render_best(players, 'Sağ Bek') }}
+                {{ render_best(players, 'Defansif Orta Saha') }} {{ render_best(players, 'Merkez Orta Saha') }}
+                {{ render_best(players, 'On Numara') }} {{ render_best(players, 'Sol Kanat') }}
+                {{ render_best(players, 'Sağ Kanat') }} {{ render_best(players, 'Santrafor') }}
+            </div>
         </div>
+
+        <div class="mb-10">
+            <h2 class="text-[9px] font-black text-slate-500 mb-4 tracking-widest uppercase italic">🛡️ KULÜPLER</h2>
+            <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+                {% for k in clubs %}
+                <a href="/kulup/{{ k.ad }}?sifre={{ sifre }}" class="flex-none text-center">
+                    <div class="w-16 h-16 bg-[#161b2a] rounded-2xl border border-slate-800 p-3 hover:border-blue-500 transition mb-2">
+                        <img src="{{ k.logo }}" class="w-full h-full object-contain">
+                    </div>
+                    <p class="text-[8px] font-black uppercase text-slate-400 truncate w-16">{{ k.ad }}</p>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <h2 class="text-[9px] font-black text-red-500 mb-4 tracking-widest uppercase italic">🔥 SON DAKİKA HABERLERİ</h2>
+            <div class="space-y-3">
+                {% for n in news %}
+                <div class="bg-[#161b2a] p-4 rounded-[1.5rem] border-l-4 border-red-600 shadow-lg">
+                    <h3 class="text-xs font-black uppercase">{{ n.baslik }}</h3>
+                    <p class="text-[10px] text-slate-400 mt-1">{{ n.icerik }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mb-10 flex flex-col md:flex-row gap-3">
+            <input type="text" id="src" onkeyup="filterAndSort()" placeholder="Oyuncu ara..." class="flex-1 bg-[#161b2a] border border-slate-800 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            <select id="sortOrder" onchange="filterAndSort()" class="bg-[#161b2a] border border-slate-800 p-4 rounded-2xl text-xs font-bold text-blue-400">
+                <option value="desc">En Değerli (Önce)</option>
+                <option value="asc">En Ucuz (Önce)</option>
+            </select>
+        </div>
+
+        {% if is_admin %}
+        <div class="bg-blue-900/10 p-8 rounded-[3rem] border-2 border-blue-600 mb-12 shadow-2xl">
+            <h3 class="text-[10px] font-black text-blue-400 mb-6 text-center tracking-widest uppercase">Yönetim Merkezi</h3>
+            <form action="/ekle" method="POST" class="grid grid-cols-2 md:grid-cols-4 gap-3 text-black text-xs mb-8">
+                <input type="hidden" name="sifre" value="{{ sifre }}"><input type="hidden" name="tip" value="player">
+                <input type="text" name="name" placeholder="İsim" class="p-3 rounded-xl font-bold" required>
+                <input type="text" name="club" placeholder="Kulüp" class="p-3 rounded-xl font-bold">
+                <select name="position" class="p-3 rounded-xl font-bold bg-white">
+                    <option value="Kaleci">Kaleci</option><option value="Stoper">Stoper</option>
+                    <option value="Sağ Bek">Sağ Bek</option><option value="Sol Bek">Sol Bek</option>
+                    <option value="Defansif Orta Saha">Defansif Orta Saha</option>
+                    <option value="Merkez Orta Saha">Merkez Orta Saha</option>
+                    <option value="On Numara">On Numara</option>
+                    <option value="Sağ Kanat">Sağ Kanat</option><option value="Sol Kanat">Sol Kanat</option>
+                    <option value="Santrafor">Santrafor</option>
+                </select>
+                <input type="text" name="value" placeholder="Değer (M €)" class="p-3 rounded-xl font-bold">
+                <input type="text" name="img" placeholder="Resim URL" class="p-3 rounded-xl col-span-2 border-2 border-green-500 font-bold">
+                <button type="submit" class="col-span-2 md:col-span-4 bg-blue-600 text-white font-black py-4 rounded-2xl uppercase">OYUNCU EKLE</button>
+            </form>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-800 pt-6">
+                <form action="/ekle" method="POST" class="space-y-2">
+                    <input type="hidden" name="sifre" value="{{ sifre }}"><input type="hidden" name="tip" value="club">
+                    <input type="text" name="ad" placeholder="Kulüp Adı" class="w-full p-3 rounded-xl text-black font-bold text-xs">
+                    <input type="text" name="logo" placeholder="Logo URL" class="w-full p-3 rounded-xl text-black font-bold text-xs">
+                    <button class="w-full bg-slate-700 p-3 rounded-xl font-black text-[10px] uppercase text-white">KULÜBÜ EKLE</button>
+                </form>
+                <form action="/ekle" method="POST" class="space-y-2">
+                    <input type="hidden" name="sifre" value="{{ sifre }}"><input type="hidden" name="tip" value="news">
+                    <input type="text" name="baslik" placeholder="Haber Başlığı" class="w-full p-3 rounded-xl text-black font-bold text-xs">
+                    <input type="text" name="icerik" placeholder="Haber Detayı" class="w-full p-3 rounded-xl text-black font-bold text-xs">
+                    <button class="w-full bg-red-600 p-3 rounded-xl font-black text-[10px] uppercase text-white">HABER YAYINLA</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
 
         <div id="grid" class="grid grid-cols-2 md:grid-cols-4 gap-6">
             {% for p in players %}
             <div class="card bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800 hover:border-blue-500 transition shadow-xl group" 
-                 data-id="{{ p.id }}" 
-                 data-info="{{ p.name|lower }} {{ p.club|lower }}" 
-                 data-val="{{ p.value }}">
+                 data-id="{{ p.id }}" data-info="{{ p.name|lower }} {{ p.club|lower }}" data-pos="{{ p.position }}" data-val="{{ p.value }}">
                 <a href="/oyuncu/{{ p.id }}?sifre={{ sifre }}">
                     <div class="h-40 w-full mb-4 bg-[#0b0f1a] rounded-[2rem] flex justify-center items-center overflow-hidden">
-                        <img src="{{ p.img }}" class="h-full object-contain group-hover:scale-110 transition duration-500" 
-                             onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166351.png'">
+                        <img src="{{ p.img }}" class="h-full object-contain group-hover:scale-110 transition duration-500">
                     </div>
                     <h3 class="text-sm font-black text-center uppercase truncate">{{ p.name }}</h3>
                     <p class="text-slate-500 text-center text-[9px] uppercase">{{ p.club }}</p>
@@ -58,31 +156,35 @@
     </div>
 
     <script>
-        function syncFromStorage() {
+        function toggleBestList() { document.getElementById('bestListArea').classList.toggle('hidden-list'); }
+
+        function sync() {
             const players = JSON.parse(localStorage.getItem('players')) || [];
             
-            // 1. Kartlardaki "None" veya eski verileri hafızadakiyle değiştir
             players.forEach(p => {
                 const card = document.querySelector(`.card[data-id="${p.id}"]`);
                 if (card) {
-                    // İsim, kulüp ve değer yazılarını güncelle
                     card.querySelector('h3').innerText = p.name;
                     card.querySelector('p').innerText = p.club;
                     card.querySelector('.val-text').innerText = p.marketValue;
-                    
-                    // Arama verisini (data-info) ve sıralama değerini (data-val) de güncelle ki arama doğru çalışsın
                     card.dataset.info = (p.name + " " + p.club).toLowerCase();
                     card.dataset.val = p.marketValue;
                 }
+                
+                // Mevki listesindeki en iyileri de hafızaya göre güncellemeye çalış
+                // (Basit mantık: Hafızadaki değer sunucudakinden büyükse yaz)
+                const bestNameEl = document.getElementById('best-' + p.position.replace(/ /g, '-'));
+                const bestValEl = document.getElementById('best-val-' + p.position.replace(/ /g, '-'));
+                if(bestValEl && parseFloat(p.marketValue) > parseFloat(bestValEl.innerText)) {
+                    bestNameEl.innerText = p.name;
+                    bestValEl.innerText = p.marketValue + " M €";
+                }
             });
 
-            // 2. Üstteki "Son Hareketler" kutularını oluştur (En son güncellenen 5 oyuncu)
             const container = document.getElementById('latest-news-container');
             if (container && players.length > 0) {
-                // Hafızadaki oyuncuları ters çevirip son 5'i al
-                const latest = [...players].slice(-5).reverse();
-                container.innerHTML = latest.map(p => `
-                    <div class="bg-slate-800/40 p-3 rounded-2xl border border-white/5 hover:border-blue-500/30 transition shadow-lg">
+                container.innerHTML = [...players].slice(-5).reverse().map(p => `
+                    <div class="bg-slate-800/40 p-3 rounded-2xl border border-white/5">
                         <p class="text-[10px] font-black truncate text-white uppercase">${p.name}</p>
                         <p class="text-[8px] text-blue-400 font-bold truncate">➔ ${p.club}</p>
                     </div>
@@ -92,27 +194,26 @@
 
         function filterAndSort() {
             let input = document.getElementById('src').value.toLowerCase();
+            let order = document.getElementById('sortOrder').value;
             let grid = document.getElementById('grid');
             let cards = Array.from(grid.getElementsByClassName('card'));
             
             cards.forEach(card => {
-                // Artık syncFromStorage sayesinde card.dataset.info güncel, arama doğru çalışır
-                let info = card.dataset.info;
-                card.style.display = info.includes(input) ? "block" : "none";
+                card.style.display = card.dataset.info.includes(input) ? "block" : "none";
             });
+
+            cards.sort((a, b) => {
+                let vA = parseFloat(a.dataset.val) || 0;
+                let vB = parseFloat(b.dataset.val) || 0;
+                return order === 'desc' ? vB - vA : vA - vB;
+            });
+            cards.forEach(card => grid.appendChild(card));
         }
 
-        // Sayfa yüklendiğinde hafızadan verileri çek
         document.addEventListener('DOMContentLoaded', () => {
-            syncFromStorage();
-            filterAndSort(); // Sayfa açılışında arama varsa uygula
+            sync();
+            filterAndSort();
         });
     </script>
-    
-    <footer class="w-full border-t border-white/10 bg-[#050505] py-8 mt-20 text-center">
-        <p class="text-[9px] text-gray-600 uppercase tracking-[5px] opacity-40">
-            &copy; 2026 TRANSFER MERKEZİ • TÜM HAKLARI SAKLIDIR
-        </p>
-    </footer>
 </body>
 </html>
