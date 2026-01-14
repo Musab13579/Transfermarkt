@@ -57,24 +57,16 @@ def home():
     clubs = Kulup.query.all()
     return render_template('index.html', players=players, news=news, clubs=clubs, is_admin=(sifre == "futbol123"), sifre=sifre)
 
-# --- KULÜP SAYFASI (Toplam Değer Eklendi) ---
+# --- KULÜP SAYFASI ---
 @app.route('/kulup/<string:kulup_adi>')
 def kulup_sayfasi(kulup_adi):
     kadro = Oyuncu.query.filter_by(club=kulup_adi).order_by(Oyuncu.value.desc()).all()
     kulup_obj = Kulup.query.filter_by(ad=kulup_adi).first()
-    
-    # Toplam değer hesaplama
     toplam = sum(p.value for p in kadro if p.value)
     toplam_str = "{:,.2f}".format(toplam).replace(",", "X").replace(".", ",").replace("X", ".")
-    
-    return render_template('kulup.html', 
-                           players=kadro, 
-                           club=kulup_obj, 
-                           club_name=kulup_adi, 
-                           toplam_deger=toplam_str, 
-                           sifre=request.args.get('sifre'))
+    return render_template('kulup.html', players=kadro, club=kulup_obj, club_name=kulup_adi, toplam_deger=toplam_str, sifre=request.args.get('sifre'))
 
-# --- DİĞER FONKSİYONLAR (Ekle/Sil/Güncelle) ---
+# --- EKLEME ---
 @app.route('/ekle', methods=['POST'])
 def ekle():
     s = request.form.get('sifre')
@@ -91,6 +83,32 @@ def ekle():
     db.session.commit()
     return redirect(url_for('home', sifre=s))
 
+# --- SİLME FONKSİYONLARI ---
+@app.route('/oyuncu-sil/<int:id>')
+def oyuncu_sil(id):
+    s = request.args.get('sifre')
+    if s == "futbol123":
+        p = Oyuncu.query.get(id)
+        if p: db.session.delete(p); db.session.commit()
+    return redirect(url_for('home', sifre=s))
+
+@app.route('/haber-sil/<int:id>')
+def haber_sil(id):
+    s = request.args.get('sifre')
+    if s == "futbol123":
+        h = Haber.query.get(id)
+        if h: db.session.delete(h); db.session.commit()
+    return redirect(url_for('home', sifre=s))
+
+@app.route('/kulup-sil/<int:id>')
+def kulup_sil(id):
+    s = request.args.get('sifre')
+    if s == "futbol123":
+        k = Kulup.query.get(id)
+        if k: db.session.delete(k); db.session.commit()
+    return redirect(url_for('home', sifre=s))
+
+# --- DETAY VE GÜNCELLEME ---
 @app.route('/oyuncu/<int:player_id>')
 def oyuncu_detay(player_id):
     p = Oyuncu.query.get_or_404(player_id)
@@ -116,6 +134,11 @@ def oyuncu_guncelle(id):
         p.mac = int(request.form.get('mac') or 0); p.gol = int(request.form.get('gol') or 0)
         p.asist = int(request.form.get('asist') or 0); p.sure = int(request.form.get('sure') or 0)
         p.mevki_x = int(request.form.get('mevki_x') or 50); p.mevki_y = int(request.form.get('mevki_y') or 50)
+        
+        # Söylenti "None" düzeltmesi
+        sylnt = request.form.get('rumors')
+        p.rumors = sylnt if sylnt else ""
+        
         db.session.commit()
     return redirect(url_for('oyuncu_detay', player_id=id, sifre=s))
 
