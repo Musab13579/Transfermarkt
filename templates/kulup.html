@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html>
 <head>
     <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -9,28 +9,23 @@
     <div class="max-w-5xl mx-auto">
         <header class="py-4"><a href="/?sifre={{ sifre }}" class="text-slate-500 font-black text-[10px] uppercase">← Piyasaya Dön</a></header>
 
-        <div class="flex items-center gap-6 bg-[#161b2a] p-8 rounded-[3rem] border border-slate-800 mb-10 shadow-2xl">
+        <div class="flex items-center gap-6 bg-[#161b2a] p-8 rounded-[3rem] border border-slate-800 mb-10">
             <img src="{{ club.logo }}" class="h-24 w-24 object-contain">
             <div>
-                <h1 class="text-4xl font-black uppercase italic tracking-tighter">{{ club.ad }}</h1>
-                <p class="text-blue-500 font-bold uppercase text-xs">Kulüp Kadrosu ve Piyasa Değerleri</p>
+                <h1 class="text-4xl font-black uppercase italic">{{ club.ad }}</h1>
+                <p class="text-blue-500 font-bold text-xs uppercase">Kulüp Kadrosu</p>
             </div>
         </div>
 
         <div id="player-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6">
             {% for p in players %}
-            <div class="player-card bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800 hover:border-blue-500 transition shadow-xl group" 
-                 data-id="{{ p.id }}" 
-                 data-current-club="{{ p.club }}">
+            <div class="player-card bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800" data-id="{{ p.id }}">
                 <a href="/oyuncu/{{ p.id }}?sifre={{ sifre }}">
                     <div class="h-40 w-full mb-4 bg-[#0b0f1a] rounded-[2rem] flex justify-center items-center overflow-hidden">
-                        <img src="{{ p.img }}" class="h-full object-contain group-hover:scale-110 transition duration-500">
+                        <img src="{{ p.img }}" class="h-full object-contain">
                     </div>
-                    <div class="flex items-center justify-center gap-1 mb-1">
-                        <span class="nation-flag text-[10px]">{{ p.nation or '' }}</span>
-                        <h3 class="text-sm font-black text-center uppercase truncate player-name">{{ p.name }}</h3>
-                    </div>
-                    <div class="bg-blue-600/10 border border-blue-500/20 p-3 rounded-2xl text-center text-blue-400 font-black text-xs mt-3 italic">
+                    <h3 class="text-sm font-black text-center uppercase truncate">{{ p.name }}</h3>
+                    <div class="bg-blue-600/10 border border-blue-500/20 p-3 rounded-2xl text-center text-blue-400 font-black text-xs mt-3">
                         <span class="val-text">{{ p.value }}</span> M €
                     </div>
                 </a>
@@ -40,40 +35,32 @@
     </div>
 
     <script>
-        function syncClubData() {
+        function checkTransfers() {
             const storagePlayers = JSON.parse(localStorage.getItem('players')) || [];
-            const deletedPlayers = JSON.parse(localStorage.getItem('deleted_players')) || []; // Eğer silme listesi tutuyorsan
             const clubName = "{{ club.ad }}";
 
-            // 1. Mevcut kartları tara ve güncelle/gizle
             document.querySelectorAll('.player-card').forEach(card => {
                 const pId = card.dataset.id;
-                const pData = storagePlayers.find(x => String(x.id) === String(pId));
-
-                // Eğer oyuncu silinmişse kartı kaldır
-                if (localStorage.getItem('deleted_' + pId) === 'true') {
+                // Silinmiş mi kontrol et
+                if(localStorage.getItem('deleted_' + pId) === 'true') {
                     card.remove();
                     return;
                 }
 
-                if (pData) {
-                    // Eğer oyuncu artık bu kulüpte değilse gizle
-                    if (pData.club !== clubName) {
-                        card.remove(); 
+                const pData = storagePlayers.find(x => String(x.id) === String(pId));
+                if(pData) {
+                    // Eğer oyuncu artık bu kulüpte değilse kartı kaldır
+                    if(pData.club !== clubName) {
+                        card.remove();
                     } else {
-                        // Eğer hala bu kulüpteyse verilerini (isim, değer, ülke) güncelle
-                        card.querySelector('.player-name').innerText = pData.name;
+                        // Verileri güncelle
+                        card.querySelector('h3').innerText = pData.name;
                         card.querySelector('.val-text').innerText = pData.marketValue;
-                        if(card.querySelector('.nation-flag')) card.querySelector('.nation-flag').innerText = pData.nation || '';
                     }
                 }
             });
-
-            // 2. Transferle Gelenler: Hafızada olup, kulübü bu olan ama listede olmayanları ekle (İsteğe bağlı)
-            // Not: Bu kısım genelde Python tarafında halledilir ama tam senkron için eklenebilir.
         }
-
-        document.addEventListener('DOMContentLoaded', syncClubData);
+        document.addEventListener('DOMContentLoaded', checkTransfers);
     </script>
 </body>
 </html>
