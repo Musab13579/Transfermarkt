@@ -72,7 +72,8 @@ def ekle():
     
     tip = request.form.get('tip')
     if tip == 'player':
-        v = float(request.form.get('value', '0').replace(',', '.'))
+        v_raw = request.form.get('value', '0').replace(',', '.')
+        v = float(v_raw) if v_raw else 0.0
         bugun = datetime.now().strftime("%d/%m")
         yeni = Oyuncu(
             name=request.form.get('name'), club=request.form.get('club'),
@@ -114,7 +115,8 @@ def oyuncu_guncelle(id):
         p.name, p.country = request.form.get('name'), request.form.get('country')
         p.position, p.yan_mevki = request.form.get('position'), request.form.get('yan_mevki')
         # Değer & Grafik
-        v = float(request.form.get('value').replace(',', '.'))
+        v_raw = request.form.get('value', '0').replace(',', '.')
+        v = float(v_raw)
         if v != p.value:
             p.value = v
             vh, dh = list(p.value_history or []), list(p.date_history or [])
@@ -164,11 +166,25 @@ def haber_duzenle(id):
         db.session.commit()
     return redirect(url_for('home', sifre=s))
 
+# --- KULÜP SAYFASI (DÜZELTİLEN KISIM) ---
 @app.route('/kulup/<string:kulup_adi>')
 def kulup_sayfasi(kulup_adi):
+    # Bu kulübe ait oyuncuları getir
     kadro = Oyuncu.query.filter_by(club=kulup_adi).order_by(Oyuncu.value.desc()).all()
-    return render_template('kulup.html', players=kadro, club_name=kulup_adi, sifre=request.args.get('sifre'))
+    
+    # Toplam değeri hesapla (Hata vermemesi için güvenli toplama)
+    toplam_deger = round(sum(p.value for p in kadro if p.value), 2)
+    
+    s = request.args.get('sifre')
+    
+    # HTML tarafında 'players' ismini kullandığın için kadro'yu players olarak gönderiyoruz
+    return render_template('kulup.html', 
+                           players=kadro, 
+                           club_name=kulup_adi, 
+                           toplam_deger=toplam_deger, 
+                           sifre=s)
 
 if __name__ == '__main__':
     with app.app_context(): db.create_all()
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
