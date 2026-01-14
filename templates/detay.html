@@ -5,174 +5,144 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>{{ player.name }} | Detay</title>
+    <style>
+        .pitch { background: #387032; border: 2px solid rgba(255,255,255,0.2); position: relative; width: 100%; height: 250px; border-radius: 15px; overflow: hidden; background-image: linear-gradient(to bottom, transparent 49%, rgba(255,255,255,0.1) 50%); background-size: 100% 40px; }
+        .pitch-center { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; transform: translate(-50%, -50%); }
+        .pos-marker { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; transition: all 0.5s; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .dot-label { font-size: 8px; font-weight: 900; margin-top: 2px; text-transform: uppercase; white-space: nowrap; padding: 1px 4px; border-radius: 4px; }
+    </style>
 </head>
 <body class="bg-[#0b0f1a] text-white p-4">
     <div class="max-w-4xl mx-auto">
         <header class="py-4"><a href="/?sifre={{ sifre }}" class="text-slate-500 font-black text-[10px] uppercase">← Piyasaya Dön</a></header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
-            <div class="bg-[#161b2a] p-10 rounded-[3rem] text-center shadow-2xl border border-slate-800">
-                <img src="{{ player.img }}" class="h-64 mx-auto object-contain mb-6">
-                <h1 id="displayName" class="text-4xl font-black uppercase italic tracking-tighter">{{ player.name }}</h1>
+            <div class="bg-[#161b2a] p-10 rounded-[3rem] text-center border border-slate-800">
+                <div id="displayNation" class="text-[20px] mb-2">🇹🇷</div> <img src="{{ player.img }}" class="h-56 mx-auto object-contain mb-6">
+                <h1 id="displayName" class="text-4xl font-black italic tracking-tighter">{{ player.name }}</h1>
                 <p id="displayClubPos" class="text-blue-500 font-bold mb-4 uppercase text-[10px]">{{ player.club }} | {{ player.position }}</p>
-                <div id="displayValue" class="bg-blue-600 p-4 rounded-2xl text-2xl font-black italic shadow-lg">{{ player.value }} M €</div>
-            </div>
-
-            <div class="space-y-6">
-                <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl">
-                    <h3 class="text-blue-500 font-black mb-4 uppercase text-[9px] tracking-widest">Piyasa Değer Grafiği (Canlı)</h3>
-                    <div class="h-40"><canvas id="chart"></canvas></div>
-                </div>
-                <div class="bg-red-900/10 p-6 rounded-[2rem] border border-red-800 shadow-xl">
-                    <h3 class="text-red-500 font-black mb-2 uppercase text-[9px] tracking-widest animate-pulse">🔥 Aktif Söylentiler</h3>
-                    <p id="displayRumors" class="text-[12px] italic text-white/90">{{ player.rumors or 'Sakin...' }}</p>
+                <div id="displayValue" class="bg-blue-600 p-4 rounded-2xl text-2xl font-black italic">{{ player.value }} M €</div>
+                
+                <div class="grid grid-cols-3 gap-2 mt-6 border-t border-slate-800 pt-6">
+                    <div class="text-center"><p class="text-[7px] text-slate-500">LİGDE</p><p id="rankLig" class="font-black text-xs text-blue-400">#--</p></div>
+                    <div class="text-center"><p class="text-[7px] text-slate-500">TAKIMDA</p><p id="rankTakim" class="font-black text-xs text-green-400">#--</p></div>
+                    <div class="text-center"><p class="text-[7px] text-slate-500">MEVKİDE</p><p id="rankMevki" class="font-black text-xs text-yellow-400">#--</p></div>
                 </div>
             </div>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800 shadow-xl flex flex-col justify-center">
-                <div class="flex justify-around items-center mb-6">
-                    <div class="text-center">
-                        <div id="statCircleSure" class="w-14 h-14 rounded-full border-4 border-blue-900 flex items-center justify-center text-xs font-bold">0%</div>
-                        <p class="text-[8px] mt-2 text-slate-400 uppercase font-black">Süre</p>
+            <div class="bg-[#161b2a] p-6 rounded-[2rem] border border-slate-800">
+                <h3 class="text-white font-black mb-4 uppercase text-[9px] text-center italic">Saha Dizilimi</h3>
+                <div class="pitch">
+                    <div class="pitch-center"></div>
+                    <div id="mainPosBox" class="pos-marker">
+                        <div class="dot bg-white"></div>
+                        <span id="mainLabel" class="dot-label bg-white text-black">---</span>
+                    </div>
+                    <div id="subPosBox" class="pos-marker">
+                        <div class="dot bg-blue-500"></div>
+                        <span id="subLabel" class="dot-label bg-blue-500 text-white">---</span>
                     </div>
                 </div>
-                <div class="grid grid-cols-4 gap-2 border-t border-slate-800 pt-4">
-                    <div class="text-center"><span id="statMac" class="text-blue-500 font-black">0</span> <p class="text-[7px] text-slate-500 uppercase">Maç</p></div>
-                    <div class="text-center"><span id="statGol" class="text-green-500 font-black">0</span> <p class="text-[7px] text-slate-500 uppercase">Gol</p></div>
-                    <div class="text-center"><span id="statAsist" class="text-yellow-500 font-black">0</span> <p class="text-[7px] text-slate-500 uppercase">Asist</p></div>
-                    <div class="text-center"><span id="statSure" class="text-white font-black">0</span> <p class="text-[7px] text-slate-500 uppercase">DK</p></div>
-                </div>
+                <div class="mt-6"><canvas id="chart"></canvas></div>
             </div>
         </div>
 
         {% if is_admin %}
-        <div class="mt-10 bg-[#161b2a] p-6 rounded-[2rem] border-2 border-dashed border-red-500 mb-10">
-            <h3 class="text-red-500 font-black mb-6 uppercase text-center text-[10px]">Bilgileri Güncelle</h3>
-            <form id="editForm" class="grid grid-cols-2 gap-3 text-black">
-                <input type="password" name="sifre" value="{{ sifre }}" class="col-span-2 p-3 rounded-xl font-bold text-xs">
-                <input type="hidden" id="editId" value="{{ player.id }}">
+        <div class="mt-10 bg-[#161b2a] p-6 rounded-[2rem] border-2 border-dashed border-blue-500 mb-10 text-black">
+            <h3 class="text-blue-500 font-black mb-6 uppercase text-center text-[10px]">Gelişmiş Veri Girişi</h3>
+            <form id="editForm" class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <input type="text" id="editName" class="p-3 rounded-xl text-xs font-bold" placeholder="İsim">
                 <input type="text" id="editClub" class="p-3 rounded-xl text-xs font-bold" placeholder="Kulüp">
-                <input type="text" id="editValue" class="p-3 rounded-xl text-xs font-bold" placeholder="Değer (M €)">
-                <input type="text" id="editPosition" class="p-3 rounded-xl text-xs font-bold" placeholder="Mevki">
-                <input type="number" id="editMac" class="p-3 rounded-xl text-xs font-bold" placeholder="Maç">
-                <input type="number" id="editGol" class="p-3 rounded-xl text-xs font-bold" placeholder="Gol">
-                <input type="number" id="editAsist" class="p-3 rounded-xl text-xs font-bold" placeholder="Asist">
-                <input type="number" id="editSure" class="p-3 rounded-xl text-xs font-bold" placeholder="Toplam Dakika">
-                <textarea id="editRumors" class="col-span-2 p-3 rounded-xl text-xs font-bold" placeholder="Söylentiler"></textarea>
-                <button type="button" onclick="saveChanges(event)" class="col-span-2 bg-blue-600 text-white font-black py-4 rounded-2xl">BİLGİLERİ VE GRAFİĞİ GÜNCELLE</button>
+                <input type="text" id="editNation" class="p-3 rounded-xl text-xs font-bold" placeholder="Ülke Bayrağı (Emoji)">
+                <input type="text" id="editValue" class="p-3 rounded-xl text-xs font-bold" placeholder="Değer (M)">
+                
+                <input type="text" id="editPos" class="p-3 rounded-xl text-xs font-bold" placeholder="Ana Mevki">
+                <input type="number" id="editX" class="p-3 rounded-xl text-xs font-bold" placeholder="Ana X (0-100)">
+                <input type="number" id="editY" class="p-3 rounded-xl text-xs font-bold" placeholder="Ana Y (0-100)">
+                
+                <input type="text" id="editSubPos" class="p-3 rounded-xl text-xs font-bold" placeholder="Yan Mevki">
+                <input type="number" id="editSubX" class="p-3 rounded-xl text-xs font-bold" placeholder="Yan X (0-100)">
+                <input type="number" id="editSubY" class="p-3 rounded-xl text-xs font-bold" placeholder="Yan Y (0-100)">
+                
+                <button type="button" onclick="saveChanges()" class="col-span-2 md:col-span-4 bg-blue-600 text-white font-black py-4 rounded-2xl">KAYDET VE SIRALAMAYI HESAPLA</button>
             </form>
         </div>
         {% endif %}
     </div>
 
     <script>
-        let myChart;
         const currentId = "{{ player.id }}";
-
-        document.addEventListener('DOMContentLoaded', function() {
+        
+        function updateDisplay() {
             const players = JSON.parse(localStorage.getItem('players')) || [];
-            const savedData = players.find(p => String(p.id) === String(currentId));
+            const p = players.find(x => String(x.id) === String(currentId));
+            
+            if(p) {
+                // Saha Pozisyonları
+                document.getElementById('mainPosBox').style.left = (p.posX || 50) + "%";
+                document.getElementById('mainPosBox').style.top = (p.posY || 50) + "%";
+                document.getElementById('mainLabel').innerText = p.position;
 
-            let labels = ["Başlangıç"];
-            let dataValues = [parseFloat("{{ player.value }}") || 0];
+                document.getElementById('subPosBox').style.left = (p.subX || 60) + "%";
+                document.getElementById('subPosBox').style.top = (p.subY || 60) + "%";
+                document.getElementById('subLabel').innerText = p.subPosition || "---";
 
-            if (savedData) {
-                // Ekranı güncelle
-                document.getElementById('displayName').innerText = savedData.name;
-                document.getElementById('displayValue').innerText = savedData.marketValue + " M €";
-                document.getElementById('displayClubPos').innerText = savedData.club + " | " + savedData.position;
-                document.getElementById('displayRumors').innerText = savedData.rumors || 'Sakin...';
-                document.getElementById('statMac').innerText = savedData.mac || 0;
-                document.getElementById('statGol').innerText = savedData.gol || 0;
-                document.getElementById('statAsist').innerText = savedData.asist || 0;
-                document.getElementById('statSure').innerText = (savedData.sure || 0) + "'";
+                document.getElementById('displayNation').innerText = p.nation || "🇹🇷";
+                document.getElementById('displayName').innerText = p.name;
+                document.getElementById('displayValue').innerText = p.marketValue + " M €";
+
+                // SIRALAMA HESAPLAMA
+                const sortedAll = [...players].sort((a,b) => b.marketValue - a.marketValue);
+                const rankLig = sortedAll.findIndex(x => x.id === currentId) + 1;
                 
-                let percent = Math.min(100, Math.round(((savedData.sure || 0) / ((savedData.mac || 1) * 90)) * 100));
-                document.getElementById('statCircleSure').innerText = percent + "%";
+                const sortedTeam = players.filter(x => x.club === p.club).sort((a,b) => b.marketValue - a.marketValue);
+                const rankTakim = sortedTeam.findIndex(x => x.id === currentId) + 1;
 
-                // FORM KUTULARINI DOLDUR (Senin istediğin can alıcı nokta)
-                if(document.getElementById('editName')) {
-                    document.getElementById('editName').value = savedData.name;
-                    document.getElementById('editClub').value = savedData.club;
-                    document.getElementById('editValue').value = savedData.marketValue;
-                    document.getElementById('editPosition').value = savedData.position;
-                    document.getElementById('editMac').value = savedData.mac;
-                    document.getElementById('editGol').value = savedData.gol;
-                    document.getElementById('editAsist').value = savedData.asist;
-                    document.getElementById('editSure').value = savedData.sure;
-                    document.getElementById('editRumors').value = savedData.rumors;
-                }
+                const sortedPos = players.filter(x => x.position === p.position).sort((a,b) => b.marketValue - a.marketValue);
+                const rankMevki = sortedPos.findIndex(x => x.id === currentId) + 1;
 
-                // GRAFİK GEÇMİŞİNİ YÜKLE (Borsa tipi iniş çıkış)
-                if (savedData.history && savedData.history.length > 0) {
-                    labels = savedData.history.map((_, i) => i === 0 ? "Başlangıç" : "Günc. " + i);
-                    dataValues = savedData.history.map(v => parseFloat(v));
-                }
-            } else {
-                // Hafıza boşsa Python verilerini kutulara yaz
+                document.getElementById('rankLig').innerText = "#" + rankLig;
+                document.getElementById('rankTakim').innerText = "#" + rankTakim;
+                document.getElementById('rankMevki').innerText = "#" + rankMevki;
+
+                // Formu Doldur
                 if(document.getElementById('editName')) {
-                    document.getElementById('editName').value = "{{ player.name }}";
-                    document.getElementById('editClub').value = "{{ player.club }}";
-                    document.getElementById('editValue').value = "{{ player.value }}";
-                    document.getElementById('editPosition').value = "{{ player.position }}";
+                    document.getElementById('editName').value = p.name;
+                    document.getElementById('editPos').value = p.position;
+                    document.getElementById('editX').value = p.posX;
+                    document.getElementById('editY').value = p.posY;
+                    document.getElementById('editSubPos').value = p.subPosition;
+                    document.getElementById('editSubX').value = p.subX;
+                    document.getElementById('editSubY').value = p.subY;
+                    document.getElementById('editNation').value = p.nation;
                 }
             }
+        }
 
-            const ctx = document.getElementById('chart').getContext('2d');
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{ 
-                        data: dataValues, 
-                        borderColor: '#3b82f6', tension: 0.3, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        pointRadius: 5, pointBackgroundColor: '#3b82f6'
-                    }]
-                },
-                options: { 
-                    plugins: { legend: { display: false } }, 
-                    scales: { 
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } }, 
-                        x: { grid: { display: false }, ticks: { color: '#64748b' } } 
-                    } 
-                }
-            });
-        });
-
-        function saveChanges(event) {
-            if(document.getElementsByName('sifre')[0].value !== "futbol123") { alert("Şifre Yanlış!"); return; }
-            
+        function saveChanges() {
             let players = JSON.parse(localStorage.getItem('players')) || [];
-            let idx = players.findIndex(p => String(p.id) === String(currentId));
+            let idx = players.findIndex(x => String(x.id) === String(currentId));
             
-            let playerObj = idx !== -1 ? players[idx] : { id: currentId, history: [parseFloat("{{ player.value }}")] };
-            const newValue = document.getElementById('editValue').value;
+            let obj = idx !== -1 ? players[idx] : { id: currentId };
+            
+            obj.name = document.getElementById('editName').value;
+            obj.club = document.getElementById('editClub').value;
+            obj.marketValue = parseFloat(document.getElementById('editValue').value);
+            obj.position = document.getElementById('editPos').value;
+            obj.posX = document.getElementById('editX').value;
+            obj.posY = document.getElementById('editY').value;
+            obj.subPosition = document.getElementById('editSubPos').value;
+            obj.subX = document.getElementById('editSubX').value;
+            obj.subY = document.getElementById('editSubY').value;
+            obj.nation = document.getElementById('editNation').value;
 
-            // Değer değiştiyse geçmişe ekle (Grafik için)
-            if (!playerObj.history) playerObj.history = [parseFloat("{{ player.value }}")];
-            if (playerObj.marketValue !== newValue) {
-                playerObj.history.push(parseFloat(newValue));
-            }
-
-            playerObj.name = document.getElementById('editName').value;
-            playerObj.club = document.getElementById('editClub').value;
-            playerObj.position = document.getElementById('editPosition').value;
-            playerObj.marketValue = newValue;
-            playerObj.rumors = document.getElementById('editRumors').value;
-            playerObj.mac = document.getElementById('editMac').value;
-            playerObj.gol = document.getElementById('editGol').value;
-            playerObj.asist = document.getElementById('editAsist').value;
-            playerObj.sure = document.getElementById('editSure').value;
-
-            if(idx !== -1) players[idx] = playerObj; else players.push(playerObj);
-
+            if(idx !== -1) players[idx] = obj; else players.push(obj);
             localStorage.setItem('players', JSON.stringify(players));
-            alert("VERİLER VE GRAFİK GÜNCELLENDİ!");
             location.reload();
         }
+
+        document.addEventListener('DOMContentLoaded', updateDisplay);
     </script>
 </body>
 </html>
