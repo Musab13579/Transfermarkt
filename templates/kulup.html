@@ -3,64 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>{{ club.ad }} | Kadro</title>
+    <title>{{ club_name }} | Kadro</title>
 </head>
 <body class="bg-[#0b0f1a] text-white p-4">
     <div class="max-w-5xl mx-auto">
         <header class="py-4"><a href="/?sifre={{ sifre }}" class="text-slate-500 font-black text-[10px] uppercase">← Piyasaya Dön</a></header>
 
         <div class="flex items-center gap-6 bg-[#161b2a] p-8 rounded-[3rem] border border-slate-800 mb-10">
-            <img src="{{ club.logo }}" class="h-24 w-24 object-contain">
+            <div class="h-24 w-24 bg-[#0b0f1a] rounded-3xl flex items-center justify-center overflow-hidden border border-slate-700">
+                {% if club and club.logo %}
+                    <img src="{{ club.logo }}" class="h-full w-full object-contain">
+                {% else %}
+                    <span class="text-3xl font-black text-blue-500">{{ club_name[:2].upper() }}</span>
+                {% endif %}
+            </div>
+            
             <div>
-                <h1 class="text-4xl font-black uppercase italic">{{ club.ad }}</h1>
-                <p class="text-blue-500 font-bold text-xs uppercase">Kulüp Kadrosu</p>
+                <h1 class="text-4xl font-black uppercase italic tracking-tighter">{{ club_name }}</h1>
+                <p class="text-blue-500 font-bold text-xs uppercase">Kulüp Kadrosu ({{ players|length }} Oyuncu)</p>
             </div>
         </div>
 
         <div id="player-grid" class="grid grid-cols-2 md:grid-cols-4 gap-6">
             {% for p in players %}
-            <div class="player-card bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800" data-id="{{ p.id }}">
+            <div class="player-card bg-[#161b2a] p-5 rounded-[2.5rem] border border-slate-800 hover:border-blue-500 transition shadow-xl">
                 <a href="/oyuncu/{{ p.id }}?sifre={{ sifre }}">
                     <div class="h-40 w-full mb-4 bg-[#0b0f1a] rounded-[2rem] flex justify-center items-center overflow-hidden">
-                        <img src="{{ p.img }}" class="h-full object-contain">
+                        <img src="{{ p.img }}" class="h-full object-contain" onerror="this.src='https://via.placeholder.com/150'">
                     </div>
                     <h3 class="text-sm font-black text-center uppercase truncate">{{ p.name }}</h3>
-                    <div class="bg-blue-600/10 border border-blue-500/20 p-3 rounded-2xl text-center text-blue-400 font-black text-xs mt-3">
+                    <p class="text-[9px] text-slate-500 text-center uppercase font-bold">{{ p.position }}</p>
+                    <div class="bg-blue-600/10 border border-blue-500/20 p-3 rounded-2xl text-center text-blue-400 font-black text-xs mt-3 italic">
                         <span class="val-text">{{ p.value }}</span> M €
                     </div>
                 </a>
             </div>
+            {% else %}
+            <div class="col-span-full py-20 text-center">
+                <p class="text-slate-500 font-bold uppercase text-xs tracking-widest">Bu kulübe ait kayıtlı oyuncu bulunamadı.</p>
+            </div>
             {% endfor %}
         </div>
     </div>
-
-    <script>
-        function checkTransfers() {
-            const storagePlayers = JSON.parse(localStorage.getItem('players')) || [];
-            const clubName = "{{ club.ad }}";
-
-            document.querySelectorAll('.player-card').forEach(card => {
-                const pId = card.dataset.id;
-                // Silinmiş mi kontrol et
-                if(localStorage.getItem('deleted_' + pId) === 'true') {
-                    card.remove();
-                    return;
-                }
-
-                const pData = storagePlayers.find(x => String(x.id) === String(pId));
-                if(pData) {
-                    // Eğer oyuncu artık bu kulüpte değilse kartı kaldır
-                    if(pData.club !== clubName) {
-                        card.remove();
-                    } else {
-                        // Verileri güncelle
-                        card.querySelector('h3').innerText = pData.name;
-                        card.querySelector('.val-text').innerText = pData.marketValue;
-                    }
-                }
-            });
-        }
-        document.addEventListener('DOMContentLoaded', checkTransfers);
-    </script>
 </body>
 </html>
